@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "react-activity-calendar/tooltips.css";
+
+@theme inline {
+  --color-canvas: #070811;
+  --color-surface: #0c0e1d;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-glass: rgba(18, 22, 41, 0.45);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-solid: rgba(12, 14, 29, 0.85);
+  --color-glow-indigo: #3b2d6b;
+  --color-glow-teal: #1a434e;
+  --color-glow-amber: #5c3a21;
+  --color-accent-emerald: #10b981;
+  --color-accent-emerald-deep: #047857;
+  --color-accent-violet: #8b5cf6;
+  --color-accent-violet-deep: #6d28d9;
+  --color-accent-spotify: #1db954;
+  --color-coral: #ff7e5f;
+  --color-peach: #feb47b;
+  --color-gold: #ffd166;
+  --color-sky: #68b0ab;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@utility glass-card {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 28px 70px -40px rgba(0, 0, 0, 0.9);
+}
+
+@utility solid-card {
+  background: var(--color-solid);
+  border: 1px solid var(--color-glass-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 24px 60px -44px rgba(0, 0, 0, 0.95);
+}
+
+@utility hairline {
+  border-color: var(--color-glass-border);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--color-glass-border);
+}
+
+html {
+  background: var(--color-canvas);
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.28);
+  color: #f8fafc;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+@keyframes orb-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2.5rem, -1.5rem, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-1.5rem, 2rem, 0) scale(0.97);
+  }
+}
+
+@keyframes equalizer {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.ambient-orb {
+  animation: orb-drift 22s ease-in-out infinite alternate;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.equalizer-bar {
+  animation: equalizer 1.4s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-orb,
+  .equalizer-bar {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
