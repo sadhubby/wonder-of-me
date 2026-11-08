@@ -47,6 +47,7 @@ export function DeckVault({ decks }: DeckVaultProps) {
                     src={deck.commanderArtUrl}
                     alt={`Commander art for ${deck.commander}`}
                     fill
+                    unoptimized
                     sizes="(max-width: 640px) 100vw, 240px"
                     className="object-cover opacity-75 transition duration-500 group-hover/deck:scale-[1.04] group-hover/deck:opacity-90"
                   />
