@@ -1,6 +1,6 @@
 # UI design system
 
-The visual direction is nocturnal, frosted, and atmospheric. Color is used sparingly: deep navy surfaces, ambient gradient orbs, and tiny accent highlights. Typography must stay crisp against the moody background.
+The visual direction is smoked glass over a moody, colorful mesh: overlapping rose, coral, amber, peach, and gold fields on a deep-plum base, with translucent deep-plum panels. Saturated color carries the atmosphere and the data; text stays white or pale rose so contrast survives everywhere.
 
 ## Design tokens
 
@@ -10,67 +10,83 @@ Tokens live in `src/app/globals.css` as Tailwind theme variables.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `canvas` | `#070811` | Page base |
-| `surface` | `#0c0e1d` | Raised surfaces and inner panels |
-| `glass` | `rgba(18, 22, 41, 0.45)` | Frosted card shell |
-| `glass-border` | `rgba(255, 255, 255, 0.08)` | 1px light edge |
-| `solid` | `rgba(12, 14, 29, 0.85)` | Text-heavy card core |
+| `canvas` | `#240c1b` | Base under the color mesh and dark separators |
+| `surface` | `#3a132e` | Opaque fallback and inner panels |
+| `glass-bg` | `rgba(34, 12, 30, 0.55)` | Frosted card shell |
+| `glass-border` | `rgba(255, 255, 255, 0.22)` | 1px light edge |
+| `surface-alpha` | `rgba(28, 10, 26, 0.68)` | Deeper glass core for text-heavy cards |
 
-### Ambient orbs
+### Sunset atmosphere
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `glow-indigo` | `#3b2d6b` | Deep violet-indigo orb |
-| `glow-teal` | `#1a434e` | Smoky teal atmospheric wash |
-| `glow-amber` | `#5c3a21` | Warm vintage amber glow |
+| `rose` | `#f472b6` | Rose mesh field, reading fills |
+| `coral` | `#e11d48` | Coral mesh field, nutrition and portfolio fills |
+| `amber` | `#f59e0b` | Amber mesh field, gym and carb fills |
 
-The orbs are fixed, blurred (`90px`), low-opacity, and drift slowly. Motion is disabled under `prefers-reduced-motion`.
+The page background is a fixed, full-viewport mesh of 12 overlapping radial color fields over the `#240c1b` canvas. The fields use rose, coral, amber, peach, gold, pale rose, deep rose, and deep amber at low alpha so the page stays moody and the glass keeps its contrast. The arrangement is fixed and static; there is no animation.
 
 ### Telemetry accents
 
-| Token | Value | Use |
+Each family has a **fill** token and an **ink** token. Fills are saturated and used for bars, heatmaps, dots, and glows. Inks are pale and used for text and icons so they stay readable on smoked glass.
+
+| Family | Fill | Ink |
 | --- | --- | --- |
-| `accent-emerald` | `#10b981` | Gym heatmap, streaks, success |
-| `accent-emerald-deep` | `#047857` | Gym heatmap mid-levels |
-| `accent-violet` | `#8b5cf6` | Reading heatmap, bookshelf |
-| `accent-violet-deep` | `#6d28d9` | Reading heatmap mid-levels |
-| `accent-spotify` | `#1db954` | Spotify shell |
-
-### Micro-highlight palette
-
-Used only at low opacity or for tiny accents, never as large background fills.
-
-| Token | Value |
-| --- | --- |
-| `coral` | `#ff7e5f` |
-| `peach` | `#feb47b` |
-| `gold` | `#ffd166` |
-| `sky` | `#68b0ab` |
+| Gym | `accent-emerald` `#f59e0b`, `accent-emerald-deep` `#b45309` | `accent-emerald-ink` `#fcd34d` |
+| Reading | `accent-violet` `#f472b6`, `accent-violet-deep` `#be185d` | `accent-violet-ink` `#fbcfe8` |
+| Nutrition / portfolio | `coral` `#e11d48` | `coral-ink` `#fecdd3` |
+| Carbs / alerts | `gold` `#f59e0b` | `gold-ink` `#fde68a` |
+| Garden / fat | `sky` `#f472b6` | `sky-ink` `#fbcfe8` |
+| Spotify (brand exception) | `accent-spotify` `#1db954` | `accent-spotify-ink` `#86efac` |
 
 ### Typography
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `text-primary` | `#f8fafc` | Headers, stats, titles |
-| `text-secondary` | `#94a3b8` | Timestamps, labels, hints |
+| `text-primary` | `#ffffff` | Headers, stats, titles |
+| `text-secondary` | `#fce7f3` | Timestamps, labels, hints |
+| `focus` | `#ffffff` | Focus-visible outlines |
 
-Numbers use the Geist Mono font for a telemetry feel. Body copy uses Geist Sans.
+A subtle `text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25)` adds separation from the background. It is never used as a substitute for contrast. Numbers use Geist Mono; body copy uses Geist Sans.
 
-## Solid core / frosted shell rule
+## Glass hierarchy
 
-This is the most important visual rule.
-
-- **Frosted shell** (`glass-card`): low-opacity background, `backdrop-blur(24px)`, 1px light border. Used for:
+- **Frosted shell** (`glass-card`): `rgba(34, 12, 30, 0.55)`, `backdrop-blur(20px)`, 1px `glass-border`, inset highlight, soft shadow. Used for:
   - gym and reading heatmaps
   - deck vault
   - Spotify shell
-- **Solid core** (`solid-card`): `rgba(12, 14, 29, 0.85)` background. Used for:
+- **Deep glass core** (`solid-card`): `rgba(28, 10, 26, 0.68)` with the same blur and border. Used for:
   - nutrition
   - active bookshelf
   - Telegram dispatch guide
   - external link tiles
+  - status alerts and the error panel
+- **Glass bar** (`glass-bar`): `rgba(34, 12, 30, 0.5)`, `backdrop-blur(16px)`. Used for the site header, the snapshot row, and the footer so their text never sits directly on the background.
+- **Glass button** (`glass-button`): white `0.1` fill, `backdrop-blur(10px)`, hover to white `0.14` with `scale(1.05)`, white focus outline. Used for the error retry control.
+- **Page mesh** (`page-bg`): fixed full-viewport layer of 12 radial palette fields over the canvas; `pointer-events: none`, positioned at `-z-10` in the layout.
 
-Text-heavy cards never use heavy blur behind body copy. The solid layer guarantees contrast and prevents muddy letterforms over the orbs.
+Text-heavy cards use the deeper fill. The solid/frosted distinction is a contrast tool, not decoration.
+
+## Pills and status labels
+
+Static metadata is plain text, not pill-shaped. Pills are reserved for nothing at the moment; buttons use `rounded-lg`. This keeps the UI from reading as a stack of badges.
+
+| Element | Before | After |
+| --- | --- | --- |
+| Header status | Two `rounded-full` pills | One plain uppercase line: `Read-only · Telegram → Turso` |
+| Nutrition date | `rounded-full` pill | Removed; the snapshot row already shows the date |
+| Nutrition target | `rounded-full` tinted pill | Plain accent text |
+| Gym streak | `rounded-full` bordered pill | Plain accent text |
+| Gym recent splits | `rounded-full` chips | Wrapped text list with dots |
+| Reading streak | `rounded-full` bordered pill | Plain accent text |
+| Bookshelf count | `rounded-full` bordered pill | Plain accent text |
+| Deck count | `rounded-full` bordered pill | Plain text |
+| Decklist control | `glass-button rounded-full` | Plain text link with focus outline |
+| Spotify badge | `rounded-full` pill | Removed; the card title and body already identify Spotify |
+| Link tile “Not set” | `rounded-full` pill | Plain uppercase text |
+| Error retry | `glass-button rounded-full` | `glass-button rounded-lg` |
+
+Kept as-is: WUBRG pips, status dots, progress bars, equalizer bars, and skeleton placeholders. Those are functional shapes, not badges.
 
 ## Bento layout
 
@@ -115,23 +131,43 @@ components/dashboard/
 ## Heatmap styling
 
 - `react-activity-calendar` renders 365 days ending today.
-- Dark themes use five explicit levels per card.
-- Gym: emerald scale.
-- Reading: violet scale.
+- Dark themes use five derived levels per card, defined in `globals.css` as `--color-heat-*` tokens. All values come from the token palette via `color-mix(in oklab, …)`.
+- Gym scale:
+
+  | Level | Formula |
+  | --- | --- |
+  | 0 | 10% `accent-emerald-deep` into `surface` |
+  | 1 | 45% `accent-emerald-deep` into `surface` |
+  | 2 | `accent-emerald-deep` |
+  | 3 | `accent-emerald` |
+  | 4 | 45% `text-primary` into `accent-emerald` |
+
+- Reading scale: the same ramp with `accent-violet-deep` and `accent-violet`.
 - Weekday labels show Monday / Wednesday / Friday.
 - Tooltips show value + human-readable date.
 - Small screens get a horizontal-scroll container; the card itself never breaks the grid.
 
+## Intentional exceptions
+
+These are deliberate deviations and must not be treated as accidental drift.
+
+- **Magic: The Gathering WUBRG pips.** Color-identity badges keep their print-authentic colors: W `#f4e8c1`, U `#7dd3fc`, B `#7c6f9e`, R `coral`, G `accent-emerald`. The red pip uses white text for contrast. They are small functional indicators, not surfaces.
+- **Spotify brand green.** `accent-spotify` `#1db954` (fill) and `accent-spotify-ink` `#86efac` (text) are retained for brand recognition. No other green is used.
+- **Neutral alpha overlays.** `bg-white/[0.03-0.1]`, `border-white/[0.1-0.2]`, and `bg-black/[0.08-0.15]` are functional neutrals for depth and hairline edges. Text-bearing labels stay plain so pale text keeps its contrast margin.
+- **Palette alpha derivatives.** Gradients and inset shadows may express palette colors as raw `rgba()` values (for example `rgba(244, 114, 182, 0.28)` for `rose`). The hue always comes from the palette.
+
 ## Responsive and accessibility notes
 
+- Text targets at least 4.5:1 against the worst-case amber-side glass. Ink tokens and the `0.55` / `0.68` glass fills exist for that reason.
 - All external links use `target="_blank"` with `rel="noreferrer noopener"`.
-- Focus-visible outlines use the `sky` token.
+- Focus-visible outlines use the `focus` token with a visible offset.
 - Progress bars expose `role="progressbar"` and `aria-valuenow`.
 - The nutrition ring has an accessible text label.
 - Heatmap color is not the only signal: totals, streaks, and recent logs are shown as text.
-- `prefers-reduced-motion` disables orb drift, equalizer motion, and transitions.
+- `prefers-reduced-motion` disables equalizer motion, button scaling, and transitions.
+- `prefers-reduced-transparency` replaces the glass with an opaque deep-plum surface. A `@supports not (backdrop-filter)` fallback does the same on browsers without blur.
 - Cards use semantic headings (`h1` for the dashboard title, `h2` for cards).
 
 ## Editing the palette
 
-Change the variables in `src/app/globals.css` under `@theme inline`. Tailwind utilities such as `bg-canvas`, `text-text-secondary`, `border-glass-border`, and `bg-accent-emerald` update automatically.
+Change the variables in `src/app/globals.css` under `@theme inline`. Tailwind utilities such as `bg-rose`, `text-text-secondary`, `border-glass-border`, and `bg-accent-emerald` update automatically. Heatmap ramps live in the `:root` block below the theme as `--color-heat-gym-*` and `--color-heat-reading-*`; they reference the theme tokens and recalculate automatically.

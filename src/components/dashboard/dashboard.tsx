@@ -19,7 +19,7 @@ type DashboardProps = {
 export function Dashboard({ data }: DashboardProps) {
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-text-secondary">
+      <div className="glass-bar flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3 text-xs text-text-secondary">
         <span>
           Snapshot for{" "}
           <span className="text-text-primary">{formatLongDate(data.today)}</span>
@@ -35,7 +35,7 @@ export function Dashboard({ data }: DashboardProps) {
           className="solid-card flex items-start gap-3 rounded-2xl px-4 py-3 text-sm text-text-secondary"
         >
           <CircleAlert
-            className="mt-0.5 size-4 shrink-0 text-gold"
+            className="mt-0.5 size-4 shrink-0 text-gold-ink"
             aria-hidden="true"
           />
           <p>{data.status.message}</p>
@@ -44,7 +44,7 @@ export function Dashboard({ data }: DashboardProps) {
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-12">
         <GymHeatmapCard gym={data.gym} />
-        <NutritionCard nutrition={data.nutrition} today={data.today} />
+        <NutritionCard nutrition={data.nutrition} />
         <ReadingHeatmapCard reading={data.reading} />
         <BookshelfCard books={data.books} />
         <DeckVault decks={data.decks} />
@@ -56,7 +56,7 @@ export function Dashboard({ data }: DashboardProps) {
           description="The polished case studies, experiments, and shipped products."
           href={data.links.portfolio}
           icon={<BriefcaseBusiness className="size-5" />}
-          accentClassName="text-coral"
+          accentClassName="text-coral-ink"
           emptyHint="PORTFOLIO_URL"
           className="xl:col-span-3"
         />
@@ -67,7 +67,7 @@ export function Dashboard({ data }: DashboardProps) {
           description="Half-formed ideas, permanent notes, and the reading trail behind them."
           href={data.links.garden}
           icon={<Sprout className="size-5" />}
-          accentClassName="text-sky"
+          accentClassName="text-sky-ink"
           emptyHint="GARDEN_URL"
           className="xl:col-span-3"
         />

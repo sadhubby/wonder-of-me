@@ -2,6 +2,7 @@ import Image from "next/image";
 import { BookOpen, Library } from "lucide-react";
 
 import { Card, CardHeading, ProgressBar } from "@/components/ui/card";
+import { Code, Label } from "@/components/ui/typography";
 import type { BookSummary } from "@/db/queries";
 
 type BookshelfCardProps = {
@@ -12,14 +13,13 @@ export function BookshelfCard({ books }: BookshelfCardProps) {
   return (
     <Card variant="solid" glow="bg-accent-violet/[0.045]" className="xl:col-span-5">
       <CardHeading
-        icon={<Library className="size-5 text-accent-violet" />}
-        iconClassName="shadow-[inset_0_0_20px_rgba(139,92,246,0.08)]"
-        eyebrow="On the nightstand"
+        icon={<Library className="size-5 text-accent-violet-ink" />}
+        iconClassName="shadow-[inset_0_0_20px_rgba(244,114,182,0.12)]"
         title="Active bookshelf"
         action={
-          <span className="rounded-full border border-accent-violet/20 bg-accent-violet/[0.06] px-2.5 py-1 text-[0.65rem] font-medium text-accent-violet">
+          <Label as="span" className="text-accent-violet-ink">
             {books.length} reading
-          </span>
+          </Label>
         }
       />
 
@@ -27,7 +27,7 @@ export function BookshelfCard({ books }: BookshelfCardProps) {
         <div className="space-y-4">
           {books.slice(0, 4).map((book) => (
             <div key={book.id} className="flex gap-3">
-              <div className="relative h-[72px] w-12 shrink-0 overflow-hidden rounded-lg border border-white/[0.08] bg-[linear-gradient(150deg,rgba(139,92,246,0.25),rgba(26,67,78,0.35))]">
+              <div className="relative h-[72px] w-12 shrink-0 overflow-hidden rounded-control border border-white/[0.1] bg-[linear-gradient(150deg,rgba(244,114,182,0.28),rgba(225,29,72,0.35))]">
                 {book.coverUrl ? (
                   <Image
                     src={book.coverUrl}
@@ -39,7 +39,7 @@ export function BookshelfCard({ books }: BookshelfCardProps) {
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <BookOpen
-                      className="size-5 text-accent-violet/70"
+                      className="size-5 text-accent-violet-ink/70"
                       aria-hidden="true"
                     />
                   </div>
@@ -68,7 +68,7 @@ export function BookshelfCard({ books }: BookshelfCardProps) {
                     <span>
                       {book.loggedPages.toLocaleString("en-US")} pages logged
                     </span>
-                    <span className="font-mono text-text-primary">
+                    <span className="tabular-nums text-text-primary">
                       {book.progress !== null
                         ? `${book.progress}%`
                         : book.totalPages
@@ -82,14 +82,13 @@ export function BookshelfCard({ books }: BookshelfCardProps) {
           ))}
         </div>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.08] px-6 py-10 text-center">
-          <BookOpen className="size-6 text-accent-violet/70" aria-hidden="true" />
+        <div className="flex flex-1 flex-col items-center justify-center rounded-panel border border-dashed border-white/[0.08] px-6 py-10 text-center">
+          <BookOpen className="size-6 text-accent-violet-ink/70" aria-hidden="true" />
           <p className="mt-3 text-sm font-medium text-text-primary">
             The shelf is empty
           </p>
           <p className="mt-1 max-w-[24ch] text-xs leading-relaxed text-text-secondary">
-            Log a reading session from Telegram with{" "}
-            <span className="font-mono text-text-primary">/read</span>.
+            Log a reading session from Telegram with <Code>/read</Code>.
           </p>
         </div>
       )}

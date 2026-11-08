@@ -1,4 +1,4 @@
-# Dashboard of Me — Documentation
+# Wonder of Me — Documentation
 
 A single-user, read-only personal command center built with Next.js, Turso, and a Telegram write gateway. The UI is an asymmetrical bento grid with a nocturnal frosted-glass aesthetic: dual GitHub-style heatmaps, nutrition telemetry, an active bookshelf, a Commander deck vault, external link tiles, and a Spotify shell.
 

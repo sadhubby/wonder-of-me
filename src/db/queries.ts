@@ -9,7 +9,7 @@ import {
 import { getTodayInTimeZone } from "@/lib/date";
 import {
   buildHeatmap,
-  calculateStreaks,
+  sliceRecentHeatmap,
   type HeatmapDay,
 } from "@/lib/heatmap";
 
@@ -49,21 +49,19 @@ export type ReadingLogSummary = {
 
 export type GymSummary = {
   heatmap: HeatmapDay[];
+  recentHeatmap: HeatmapDay[];
   totalWorkouts: number;
   totalSets: number;
-  currentStreak: number;
-  longestStreak: number;
   favoriteSplit: string | null;
   recent: GymWorkoutSummary[];
 };
 
 export type ReadingSummary = {
   heatmap: HeatmapDay[];
+  recentHeatmap: HeatmapDay[];
   totalPages: number;
   activeDays: number;
   averagePagesPerActiveDay: number;
-  currentStreak: number;
-  longestStreak: number;
   booksFinished: number;
   recent: ReadingLogSummary[];
 };
@@ -144,11 +142,18 @@ function emptySnapshot(
   config: DashboardConfig,
   status: DashboardStatus,
 ): DashboardSnapshot {
-  const emptyHeatmap = buildHeatmap(
+  const emptyGymHeatmap = buildHeatmap(
     {},
     {
       today,
       thresholds: gymHeatmapThresholds,
+    },
+  );
+  const emptyReadingHeatmap = buildHeatmap(
+    {},
+    {
+      today,
+      thresholds: readingHeatmapThresholds,
     },
   );
 
@@ -158,27 +163,19 @@ function emptySnapshot(
     timezone: config.timezone,
     status,
     gym: {
-      heatmap: emptyHeatmap,
+      heatmap: emptyGymHeatmap,
+      recentHeatmap: sliceRecentHeatmap(emptyGymHeatmap),
       totalWorkouts: 0,
       totalSets: 0,
-      currentStreak: 0,
-      longestStreak: 0,
       favoriteSplit: null,
       recent: [],
     },
     reading: {
-      heatmap: buildHeatmap(
-        {},
-        {
-          today,
-          thresholds: readingHeatmapThresholds,
-        },
-      ),
+      heatmap: emptyReadingHeatmap,
+      recentHeatmap: sliceRecentHeatmap(emptyReadingHeatmap),
       totalPages: 0,
       activeDays: 0,
       averagePagesPerActiveDay: 0,
-      currentStreak: 0,
-      longestStreak: 0,
       booksFinished: 0,
       recent: [],
     },
@@ -256,7 +253,6 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
       ]);
 
     const gymValuesByDate: Record<string, number> = {};
-    const gymDates: string[] = [];
     const splitCounts = new Map<string, number>();
     let totalSets = 0;
 
@@ -266,7 +262,6 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
         0,
       );
       totalSets += sets;
-      gymDates.push(workout.workoutDate);
       gymValuesByDate[workout.workoutDate] =
         (gymValuesByDate[workout.workoutDate] ?? 0) +
         (workout.durationMinutes ?? Math.max(1, sets * 5));
@@ -276,23 +271,27 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
       );
     }
 
-    const gymStreaks = calculateStreaks(gymDates, today);
     const favoriteSplit =
       [...splitCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    const gymHeatmap = buildHeatmap(gymValuesByDate, {
+      today,
+      thresholds: gymHeatmapThresholds,
+    });
 
     const readingValuesByDate: Record<string, number> = {};
-    const readingDates: string[] = [];
     let totalPages = 0;
 
     for (const log of readingRows) {
       totalPages += log.pages;
-      readingDates.push(log.logDate);
       readingValuesByDate[log.logDate] =
         (readingValuesByDate[log.logDate] ?? 0) + log.pages;
     }
 
-    const readingStreaks = calculateStreaks(readingDates, today);
-    const activeReadingDays = new Set(readingDates).size;
+    const activeReadingDays = Object.keys(readingValuesByDate).length;
+    const readingHeatmap = buildHeatmap(readingValuesByDate, {
+      today,
+      thresholds: readingHeatmapThresholds,
+    });
     const readingBooks = bookRows
       .filter((book) => book.status === "reading")
       .map((book) => {
@@ -332,14 +331,10 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
       timezone: config.timezone,
       status: { ok: true },
       gym: {
-        heatmap: buildHeatmap(gymValuesByDate, {
-          today,
-          thresholds: gymHeatmapThresholds,
-        }),
+        heatmap: gymHeatmap,
+        recentHeatmap: sliceRecentHeatmap(gymHeatmap),
         totalWorkouts: gymRows.length,
         totalSets,
-        currentStreak: gymStreaks.current,
-        longestStreak: gymStreaks.longest,
         favoriteSplit,
         recent: gymRows.slice(0, 5).map((workout) => ({
           id: workout.id,
@@ -351,18 +346,14 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
         })),
       },
       reading: {
-        heatmap: buildHeatmap(readingValuesByDate, {
-          today,
-          thresholds: readingHeatmapThresholds,
-        }),
+        heatmap: readingHeatmap,
+        recentHeatmap: sliceRecentHeatmap(readingHeatmap),
         totalPages,
         activeDays: activeReadingDays,
         averagePagesPerActiveDay:
           activeReadingDays > 0
             ? Math.round(totalPages / activeReadingDays)
             : 0,
-        currentStreak: readingStreaks.current,
-        longestStreak: readingStreaks.longest,
         booksFinished: bookRows.filter((book) => book.status === "finished")
           .length,
         recent: recentReading.map((log) => ({

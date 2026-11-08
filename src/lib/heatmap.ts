@@ -1,4 +1,10 @@
-import { differenceInCalendarDays, parseISO } from "date-fns";
+import {
+  eachDayOfInterval,
+  format,
+  parseISO,
+  startOfWeek,
+  subWeeks,
+} from "date-fns";
 
 import { getLastDates } from "./date";
 
@@ -51,49 +57,38 @@ export function buildHeatmap(
   });
 }
 
-export function calculateStreaks(
-  dates: readonly string[],
-  today: string,
-): { current: number; longest: number } {
-  const uniqueDates = [...new Set(dates)].sort();
-  if (uniqueDates.length === 0) {
-    return { current: 0, longest: 0 };
+export function sliceRecentHeatmap(
+  data: readonly HeatmapDay[],
+  days = 90,
+): HeatmapDay[] {
+  return data.slice(-days);
+}
+
+export function sliceHeatmapWeeks(
+  data: readonly HeatmapDay[],
+  weeks: number,
+): HeatmapDay[] {
+  if (!Number.isInteger(weeks) || weeks < 1) {
+    throw new RangeError("Heatmap weeks must be a positive integer.");
   }
 
-  let longest = 1;
-  let run = 1;
-
-  for (let index = 1; index < uniqueDates.length; index += 1) {
-    const previous = parseISO(uniqueDates[index - 1]);
-    const current = parseISO(uniqueDates[index]);
-
-    if (differenceInCalendarDays(current, previous) === 1) {
-      run += 1;
-      longest = Math.max(longest, run);
-    } else {
-      run = 1;
-    }
+  const lastDay = data[data.length - 1];
+  if (!lastDay) {
+    throw new RangeError("Heatmap data must not be empty.");
   }
 
-  const lastDate = parseISO(uniqueDates[uniqueDates.length - 1]);
-  const todayDate = parseISO(today);
-  const daysSinceLast = differenceInCalendarDays(todayDate, lastDate);
+  const end = parseISO(lastDay.date);
+  const start = startOfWeek(subWeeks(end, weeks - 1), { weekStartsOn: 0 });
+  const valuesByDate = new Map(data.map((day) => [day.date, day]));
 
-  if (daysSinceLast > 1) {
-    return { current: 0, longest };
-  }
-
-  let current = 1;
-  for (let index = uniqueDates.length - 1; index > 0; index -= 1) {
-    const later = parseISO(uniqueDates[index]);
-    const earlier = parseISO(uniqueDates[index - 1]);
-
-    if (differenceInCalendarDays(later, earlier) === 1) {
-      current += 1;
-    } else {
-      break;
-    }
-  }
-
-  return { current, longest: Math.max(longest, current) };
+  return eachDayOfInterval({ start, end }).map((day) => {
+    const date = format(day, "yyyy-MM-dd");
+    return (
+      valuesByDate.get(date) ?? {
+        date,
+        count: 0,
+        level: 0,
+      }
+    );
+  });
 }

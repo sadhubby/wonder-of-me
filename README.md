@@ -1,4 +1,4 @@
-# Dashboard of Me
+# Wonder of Me
 
 A single-user personal command center: an asymmetrical bento dashboard with dual GitHub-style heatmaps (gym + reading), nutrition telemetry, an active bookshelf, a Commander deck vault, external link tiles, and a static Spotify player shell.
 

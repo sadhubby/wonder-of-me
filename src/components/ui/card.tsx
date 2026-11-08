@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Hint, Label, Metric } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 type CardProps = {
@@ -18,7 +19,7 @@ export function Card({
   return (
     <article
       className={cn(
-        "group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[28px] p-5 transition-colors duration-300 sm:p-6",
+        "group relative flex h-full min-w-0 flex-col overflow-hidden rounded-card p-5 transition-colors duration-300 sm:p-6",
         variant === "glass" ? "glass-card" : "solid-card",
         className,
       )}
@@ -41,7 +42,6 @@ export function Card({
 
 type CardHeadingProps = {
   icon: ReactNode;
-  eyebrow: string;
   title: string;
   action?: ReactNode;
   iconClassName?: string;
@@ -49,7 +49,6 @@ type CardHeadingProps = {
 
 export function CardHeading({
   icon,
-  eyebrow,
   title,
   action,
   iconClassName,
@@ -59,20 +58,15 @@ export function CardHeading({
       <div className="flex min-w-0 items-center gap-3">
         <div
           className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035]",
+            "flex size-10 shrink-0 items-center justify-center rounded-panel border border-white/10 bg-white/[0.035]",
             iconClassName,
           )}
         >
           {icon}
         </div>
-        <div className="min-w-0">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.22em] text-text-secondary">
-            {eyebrow}
-          </p>
-          <h2 className="truncate text-base font-semibold tracking-tight text-text-primary sm:text-lg">
-            {title}
-          </h2>
-        </div>
+        <h2 className="truncate text-base font-semibold tracking-tight text-text-primary sm:text-lg">
+          {title}
+        </h2>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -89,17 +83,9 @@ type StatProps = {
 export function Stat({ label, value, hint, className }: StatProps) {
   return (
     <div className={cn("min-w-0", className)}>
-      <p className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-text-secondary">
-        {label}
-      </p>
-      <p className="mt-1 font-mono text-2xl font-semibold tracking-tight text-text-primary">
-        {value}
-      </p>
-      {hint ? (
-        <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-          {hint}
-        </p>
-      ) : null}
+      <Label>{label}</Label>
+      <Metric className="mt-1">{value}</Metric>
+      {hint ? <Hint className="mt-1">{hint}</Hint> : null}
     </div>
   );
 }

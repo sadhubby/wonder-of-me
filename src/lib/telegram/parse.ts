@@ -246,7 +246,7 @@ export function parseTelegramCommand(text: string): ParsedCommand | null {
 }
 
 export const helpText = [
-  "Dashboard of Me commands:",
+  "Wonder of Me commands:",
   "",
   "/gym <split> [minutes] [| exercise details]",
   "  /gym push 45 | bench 4x8, cable fly 3x12",

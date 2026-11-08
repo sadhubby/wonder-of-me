@@ -1,15 +1,14 @@
 import { Flame, Target, UtensilsCrossed } from "lucide-react";
 
 import { Card, CardHeading, ProgressBar } from "@/components/ui/card";
+import { Code, Label, Metric } from "@/components/ui/typography";
 import type { NutritionSummary } from "@/db/queries";
-import { formatLongDate } from "@/lib/date";
 
 type NutritionCardProps = {
   nutrition: NutritionSummary;
-  today: string;
 };
 
-export function NutritionCard({ nutrition, today }: NutritionCardProps) {
+export function NutritionCard({ nutrition }: NutritionCardProps) {
   const { totals, targets, remainingCalories } = nutrition;
   const caloriePercent = Math.min(
     100,
@@ -22,55 +21,47 @@ export function NutritionCard({ nutrition, today }: NutritionCardProps) {
       value: totals.protein,
       target: targets.protein,
       bar: "bg-coral",
-      text: "text-coral",
+      text: "text-coral-ink",
     },
     {
       label: "Carbs",
       value: totals.carbs,
       target: targets.carbs,
       bar: "bg-gold",
-      text: "text-gold",
+      text: "text-gold-ink",
     },
     {
       label: "Fat",
       value: totals.fat,
       target: targets.fat,
       bar: "bg-sky",
-      text: "text-sky",
+      text: "text-sky-ink",
     },
   ];
 
   return (
     <Card variant="solid" glow="bg-accent-emerald/[0.055]" className="xl:col-span-5">
       <CardHeading
-        icon={<Flame className="size-5 text-coral" />}
-        iconClassName="shadow-[inset_0_0_20px_rgba(255,126,95,0.08)]"
-        eyebrow="Nutrition"
+        icon={<Flame className="size-5 text-coral-ink" />}
+        iconClassName="shadow-[inset_0_0_20px_rgba(225,29,72,0.12)]"
         title="Fuel for today"
-        action={
-          <span className="rounded-full border border-white/[0.07] bg-white/[0.025] px-2.5 py-1 text-[0.65rem] text-text-secondary">
-            {formatLongDate(today)}
-          </span>
-        }
       />
 
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
         <div
           className="relative mx-auto flex size-36 shrink-0 items-center justify-center rounded-full p-2 sm:mx-0"
           style={{
-            background: `conic-gradient(#10b981 ${caloriePercent * 3.6}deg, rgba(255,255,255,0.065) 0deg)`,
+            background: `conic-gradient(var(--color-accent-emerald) ${caloriePercent * 3.6}deg, rgba(255,255,255,0.065) 0deg)`,
           }}
           role="img"
           aria-label={`${caloriePercent}% of daily calorie target consumed`}
         >
-          <div className="flex size-full flex-col items-center justify-center rounded-full border border-white/[0.05] bg-[#0c0e1d]">
-            <span className="font-mono text-3xl font-semibold tracking-tight text-text-primary">
+          <div className="flex size-full flex-col items-center justify-center rounded-full border border-white/[0.05] bg-surface">
+            <Metric as="span" size="lg">
               {totals.calories.toLocaleString("en-US")}
-            </span>
-            <span className="text-[0.65rem] uppercase tracking-[0.18em] text-text-secondary">
-              kcal eaten
-            </span>
-            <span className="mt-1.5 rounded-full bg-accent-emerald/10 px-2 py-0.5 text-[0.65rem] font-medium text-accent-emerald">
+            </Metric>
+            <Label as="span">kcal eaten</Label>
+            <span className="mt-1.5 text-[0.65rem] font-medium text-accent-emerald-ink">
               {caloriePercent}% of target
             </span>
           </div>
@@ -78,38 +69,31 @@ export function NutritionCard({ nutrition, today }: NutritionCardProps) {
 
         <div className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-1">
           <div>
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-text-secondary">
-              Remaining
-            </p>
-            <p className="mt-1 font-mono text-2xl font-semibold tracking-tight text-text-primary">
+            <Label>Remaining</Label>
+            <Metric className="mt-1">
               {remainingCalories.toLocaleString("en-US")}
               <span className="ml-1 text-xs font-normal text-text-secondary">
                 kcal
               </span>
-            </p>
+            </Metric>
           </div>
           <div>
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-text-secondary">
-              Daily target
-            </p>
-            <p className="mt-1 font-mono text-2xl font-semibold tracking-tight text-text-primary">
+            <Label>Daily target</Label>
+            <Metric className="mt-1">
               {targets.calories.toLocaleString("en-US")}
               <span className="ml-1 text-xs font-normal text-text-secondary">
                 kcal
               </span>
-            </p>
+            </Metric>
           </div>
         </div>
       </div>
 
       <div className="mt-7 space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="inline-flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-text-secondary">
-            <Target className="size-3.5" aria-hidden="true" />
-            Macro split
-          </p>
-          <span className="text-[0.65rem] text-text-secondary">grams / target</span>
-        </div>
+        <Label className="inline-flex items-center gap-2">
+          <Target className="size-3.5" aria-hidden="true" />
+          Macro split
+        </Label>
 
         {macros.map((macro) => {
           const percent = Math.min(
@@ -123,7 +107,7 @@ export function NutritionCard({ nutrition, today }: NutritionCardProps) {
                 <span className={`text-sm font-medium ${macro.text}`}>
                   {macro.label}
                 </span>
-                <span className="font-mono text-xs text-text-secondary">
+                <span className="text-xs tabular-nums text-text-secondary">
                   <span className="text-text-primary">{macro.value}</span> /{" "}
                   {macro.target}g
                 </span>
@@ -144,11 +128,8 @@ export function NutritionCard({ nutrition, today }: NutritionCardProps) {
           aria-hidden="true"
         />
         <p>
-          Log meals with{" "}
-          <span className="font-mono text-text-primary">
-            /eat 620 45 60 20 chicken bowl
-          </span>
-          . Macros are optional.
+          Log meals with <Code>/eat 620 45 60 20 chicken bowl</Code>. Macros are
+          optional.
         </p>
       </div>
     </Card>
