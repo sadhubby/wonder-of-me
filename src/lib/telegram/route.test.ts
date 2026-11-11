@@ -78,6 +78,7 @@ describe("Telegram webhook update processing", () => {
     vi.stubEnv("TELEGRAM_CHAT_ID", chatId);
     await db.delete(telegramUpdates);
     await db.delete(gymWorkouts);
+    await db.delete(meals);
     await db.delete(readingLogs);
     await db.delete(books);
     vi.stubGlobal(
@@ -260,6 +261,17 @@ describe("Telegram webhook update processing", () => {
     expect(await db.select().from(gymWorkouts)).toMatchObject([
       { split: "push" },
     ]);
+  });
+
+  it("reports when there is nothing to undo for the requested type", async () => {
+    expect((await POST(makeRequest(1019, "/undo gym"))).status).toBe(200);
+    expect((await POST(makeRequest(1020, "/undo read"))).status).toBe(200);
+    expect((await POST(makeRequest(1021, "/undo eat"))).status).toBe(200);
+
+    expect(await db.select().from(gymWorkouts)).toHaveLength(0);
+    expect(await db.select().from(readingLogs)).toHaveLength(0);
+    expect(await db.select().from(meals)).toHaveLength(0);
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it("undoes a new reading and removes its book", async () => {
