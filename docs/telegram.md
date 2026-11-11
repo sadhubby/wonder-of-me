@@ -164,3 +164,8 @@ Expected behavior without configuration: `503` with a generic â€œnot configuredâ
 | Commands show in Telegram but fail | Check `DASHBOARD_TIMEZONE`; log dates are based on it |
 
 Telegram retries failed deliveries. The route returns `200` for ignored or malformed updates after authentication so that bad payloads do not create retry loops.
+
+Reply delivery failures return `503` and leave the update as `pending`. A
+retry sends the stored reply without executing the command again. Telegram
+rate-limit responses include the recommended `retry_after` delay in server
+logs.

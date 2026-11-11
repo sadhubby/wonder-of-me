@@ -129,7 +129,7 @@ database migration.
   concurrent undo requests so they do not both report undoing the same row.
 - [x] Reply with the removed entry's useful details, or a clear "nothing to
   undo" message when no matching entry exists.
-- [ ] Update `/help` examples and command documentation.
+- [x] Update `/help` examples and command documentation.
 
 **Exit checks:**
 
@@ -142,18 +142,18 @@ database migration.
 
 ## Step 5 — Make Telegram reply failures observable
 
-The current send helper logs unsuccessful Telegram responses rather than
-surfacing them to its caller.
+The send helper now surfaces structured Telegram delivery failures to its
+caller, while pending updates remain safe to retry.
 
-- [ ] Make unsuccessful HTTP responses and Telegram API error bodies explicit
+- [x] Make unsuccessful HTTP responses and Telegram API error bodies explicit
   failures from `sendTelegramMessage`.
-- [ ] Ensure the route records whether the domain operation succeeded and
+- [x] Ensure the route records whether the domain operation succeeded and
   whether its reply was delivered.
-- [ ] On reply failure, preserve enough state for safe retry without rerunning
+- [x] On reply failure, preserve enough state for safe retry without rerunning
   the command's mutation.
-- [ ] Handle Telegram rate limits deliberately, respecting `retry_after` when
+- [x] Handle Telegram rate limits deliberately, respecting `retry_after` when
   retrying is appropriate.
-- [ ] Avoid retry loops or reporting success to internal processing when the
+- [x] Avoid retry loops or reporting success to internal processing when the
   reply failed.
 
 Likely file: `src/lib/telegram/send.ts`, plus the webhook route and update
@@ -161,8 +161,8 @@ processing state from Step 2.
 
 **Exit checks:**
 
-- [ ] A failed Telegram response is surfaced and logged with useful context.
-- [ ] Retrying a failed reply does not duplicate a workout, reading log, meal,
+- [x] A failed Telegram response is surfaced and logged with useful context.
+- [x] Retrying a failed reply does not duplicate a workout, reading log, meal,
   or undo.
 
 ## Step 6 — Expand the dashboard bookshelf into a Library
