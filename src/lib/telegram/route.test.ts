@@ -20,7 +20,7 @@ import * as schema from "@/db/schema";
 vi.mock("@/db", () => ({ getDb: vi.fn() }));
 
 import { getDb } from "@/db";
-import { gymWorkouts, telegramUpdates } from "@/db/schema";
+import { books, gymWorkouts, readingLogs, telegramUpdates } from "@/db/schema";
 import { POST } from "@/app/api/telegram/route";
 
 const webhookSecret = "test-webhook-secret";
@@ -72,6 +72,8 @@ describe("Telegram webhook update processing", () => {
     vi.stubEnv("TELEGRAM_CHAT_ID", chatId);
     await db.delete(telegramUpdates);
     await db.delete(gymWorkouts);
+    await db.delete(readingLogs);
+    await db.delete(books);
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -146,6 +148,54 @@ describe("Telegram webhook update processing", () => {
     expect(await db.select().from(gymWorkouts)).toHaveLength(0);
     expect(await db.select().from(telegramUpdates)).toHaveLength(0);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("matches reading titles case-insensitively without creating duplicate books", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), {
+          status: 200,
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true, result: { message_id: 2 } }), {
+          status: 200,
+        }),
+      );
+
+    const firstResponse = await POST(makeRequest(1005, "/read Dune 32"));
+    const secondResponse = await POST(makeRequest(1006, "/read dune 18"));
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(await db.select().from(books)).toHaveLength(1);
+    expect(await db.select().from(readingLogs)).toHaveLength(2);
+    expect(await db.select().from(readingLogs)).toMatchObject([
+      { previousBookStatus: null, previousBookStartedAt: null, createdBook: true },
+      { previousBookStatus: "reading", createdBook: false },
+    ]);
+  });
+
+  it("rolls back a newly created book when the reading log fails", async () => {
+    await db.$client.execute({
+      sql: `CREATE TRIGGER reject_reading_insert
+        BEFORE INSERT ON reading_logs
+        BEGIN SELECT RAISE(ABORT, 'forced test failure'); END;`,
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      const response = await POST(makeRequest(1007, "/read Dune 32"));
+
+      expect(response.status).toBe(500);
+      expect(await db.select().from(books)).toHaveLength(0);
+      expect(await db.select().from(readingLogs)).toHaveLength(0);
+      expect(await db.select().from(telegramUpdates)).toHaveLength(0);
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      await db.$client.execute({ sql: "DROP TRIGGER reject_reading_insert" });
+      errorSpy.mockRestore();
+    }
   });
 
   it("rejects invalid secrets and acknowledges malformed updates without writes", async () => {

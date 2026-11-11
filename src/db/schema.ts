@@ -53,7 +53,9 @@ export const books = sqliteTable(
       .notNull()
       .default(sql`(unixepoch())`),
   },
-  (table) => [uniqueIndex("books_title_unique").on(table.title)],
+  (table) => [
+    uniqueIndex("books_title_unique").on(sql`lower(${table.title})`),
+  ],
 );
 
 export const readingLogs = sqliteTable(
@@ -67,6 +69,9 @@ export const readingLogs = sqliteTable(
     pages: integer("pages").notNull(),
     minutes: integer("minutes"),
     notes: text("notes"),
+    previousBookStatus: text("previous_book_status").$type<BookStatus>(),
+    previousBookStartedAt: text("previous_book_started_at"),
+    createdBook: integer("created_book", { mode: "boolean" }),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),

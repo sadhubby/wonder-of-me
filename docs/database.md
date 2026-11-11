@@ -23,7 +23,7 @@ Indexed by date and split.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | integer PK | autoincrement |
-| `title` | text unique | case-insensitive lookup at write time |
+| `title` | text unique | case-insensitive uniqueness via `lower(title)` |
 | `author` | text nullable | |
 | `cover_url` | text nullable | remote image or gradient fallback |
 | `total_pages` | integer nullable | drives progress percentage |
@@ -41,6 +41,9 @@ Indexed by date and split.
 | `pages` | integer | required |
 | `minutes` | integer nullable | optional focus time |
 | `notes` | text nullable | |
+| `previous_book_status` | text nullable | book status before this log |
+| `previous_book_started_at` | text nullable | book start date before this log |
+| `created_book` | integer nullable | whether this log created the book |
 | `created_at` | timestamp | |
 
 ### `meals`

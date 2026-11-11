@@ -61,16 +61,32 @@ async function handleRead(
       .where(sql`lower(${books.title}) = lower(${command.title})`)
       .limit(1)
   )[0];
+  const previousBookStatus = book?.status;
+  const previousBookStartedAt = book?.startedAt;
+  let createdBook = false;
 
   if (!book) {
-    [book] = await db
+    const inserted = await db
       .insert(books)
       .values({
         title: command.title,
         status: "reading",
         startedAt: today,
       })
+      .onConflictDoNothing()
       .returning();
+    book = inserted[0];
+    createdBook = Boolean(book);
+
+    if (!book) {
+      book = (
+        await db
+          .select()
+          .from(books)
+          .where(sql`lower(${books.title}) = lower(${command.title})`)
+          .limit(1)
+      )[0];
+    }
   } else {
     await db
       .update(books)
@@ -81,11 +97,18 @@ async function handleRead(
       .where(eq(books.id, book.id));
   }
 
+  if (!book) {
+    throw new Error(`Book "${command.title}" was not found after insert.`);
+  }
+
   await db.insert(readingLogs).values({
     logDate: today,
     bookId: book.id,
     pages: command.pages,
     minutes: command.minutes,
+    previousBookStatus,
+    previousBookStartedAt,
+    createdBook,
   });
 
   const [progress] = await db

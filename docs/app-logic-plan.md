@@ -80,27 +80,27 @@ migration under `drizzle/`.
   processed.
 - [x] A failed reply can be retried without repeating the domain write.
 
-The migration has **not** been applied to any developer `local.db` or remote
-Turso database. Apply it to the intended development/production database
-separately before deploying this code.
+The Step 2 migration has been applied to the configured local `local.db`.
+Apply migrations to the intended remote Turso database separately before
+deploying this code.
 
 ## Step 3 — Make `/read` atomic and book matching consistent
 
-`/read` currently looks up or creates a book, updates its status, and inserts a
-reading log. These changes should succeed or fail together.
+`/read` looks up or creates a book, updates its status, and inserts a reading
+log in the transaction owned by Telegram update processing. These changes now
+succeed or fail together.
 
-- [ ] Wrap book lookup/create/update and reading-log insertion in one
+- [x] Wrap book lookup/create/update and reading-log insertion in one
   transaction.
-- [ ] Make case-insensitive title matching consistent with database
+- [x] Make case-insensitive title matching consistent with database
   uniqueness.
-- [ ] Inspect existing data for titles that differ only by capitalization
-  before applying the uniqueness migration; define a safe resolution if any
-  duplicates exist.
-- [ ] Preserve the book's prior state, or enough equivalent information, so
+- [x] Inspect existing local data for titles that differ only by capitalization
+  before applying the uniqueness migration; no duplicates were present.
+- [x] Preserve the book's prior state, or enough equivalent information, so
   `/undo read` can reverse changes made by the selected reading log.
-- [ ] Handle concurrent `/read` commands for the same title without creating
+- [x] Handle concurrent `/read` commands for the same title without creating
   duplicate books.
-- [ ] Keep the existing behavior that a successful read marks the book as
+- [x] Keep the existing behavior that a successful read marks the book as
   currently being read.
 
 Likely files: `src/lib/telegram/handler.ts`, `src/db/schema.ts`, and a new
@@ -108,10 +108,10 @@ database migration.
 
 **Exit checks:**
 
-- [ ] A successful `/read` writes both the book state and reading log.
-- [ ] A failure during the operation leaves neither a partial book change nor
+- [x] A successful `/read` writes both the book state and reading log.
+- [x] A failure during the operation leaves neither a partial book change nor
   an orphaned log.
-- [ ] Titles differing only by capitalization resolve to one book.
+- [x] Titles differing only by capitalization resolve to one book.
 
 ## Step 4 — Implement type-specific undo commands
 
