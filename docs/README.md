@@ -1,6 +1,6 @@
 # Wonder of Me — Documentation
 
-A single-user, read-only personal command center built with Next.js, Turso, and a Telegram write gateway. The UI is an asymmetrical bento grid with a nocturnal frosted-glass aesthetic: dual GitHub-style heatmaps, nutrition telemetry, an active bookshelf, a Commander deck vault, external link tiles, and a Spotify shell.
+A single-user, read-only personal command center built with Next.js, Turso, and a Telegram write gateway. The UI is an asymmetrical bento grid with a nocturnal frosted-glass aesthetic: dual GitHub-style heatmaps, nutrition telemetry, a full Library, a Commander deck vault, external link tiles, and a Spotify shell.
 
 ## Documentation map
 
@@ -24,6 +24,6 @@ A single-user, read-only personal command center built with Next.js, Turso, and 
 
 ## Current scope
 
-- Live: gym, reading, nutrition, bookshelf, MTG decks, external tiles.
+- Live: gym, reading, nutrition, Library, MTG decks, external tiles.
 - Stubbed intentionally: Spotify now-playing. The visual shell and data seam are present, but OAuth/API wiring is deferred.
 - Sample content is seeded for first-run visuals. Replace it in `src/db/seed.ts` or directly in the database.

@@ -167,25 +167,24 @@ processing state from Step 2.
 
 ## Step 6 — Expand the dashboard bookshelf into a Library
 
-The dashboard query currently filters books to status `reading`. The Library
-should include the full collection.
+The dashboard Library includes the full book collection.
 
-- [ ] Return books with `reading`, `finished`, and `paused` statuses.
-- [ ] Keep title, author, cover, page count, logged pages, progress, and
+- [x] Return books with `reading`, `finished`, and `paused` statuses.
+- [x] Keep title, author, cover, page count, logged pages, progress, and
   start-date information where available.
-- [ ] Include each book's status in the summary type.
-- [ ] Display the status and useful progress details for every book.
-- [ ] Preserve the existing visual style and provide a clear empty state.
-- [ ] Check that progress handles unknown page totals and does not exceed 100%.
+- [x] Include each book's status in the summary type.
+- [x] Display the status and useful progress details for every book.
+- [x] Preserve the existing visual style and provide a clear empty state.
+- [x] Check that progress handles unknown page totals and does not exceed 100%.
 
 Likely files: `src/db/queries.ts` and
 `src/components/dashboard/bookshelf-card.tsx`; update related tests as needed.
 
 **Exit checks:**
 
-- [ ] Reading, finished, and paused books are all visible.
-- [ ] Each displayed book has a clear status.
-- [ ] Progress and empty-state behavior are correct.
+- [x] Reading, finished, and paused books are all visible.
+- [x] Each displayed book has a clear status.
+- [x] Progress and empty-state behavior are correct.
 
 ## Step 7 — Add focused automated tests
 

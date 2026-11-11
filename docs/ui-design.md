@@ -57,7 +57,7 @@ A subtle `text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25)` adds separation from the b
   - Spotify shell
 - **Deep glass core** (`solid-card`): `rgba(28, 10, 26, 0.68)` with the same blur and border. Used for:
   - nutrition
-  - active bookshelf
+  - full Library
   - Telegram dispatch guide
   - external link tiles
   - status alerts and the error panel
@@ -79,7 +79,7 @@ Static metadata is plain text, not pill-shaped. Pills are reserved for nothing a
 | Gym streak | `rounded-full` bordered pill | Plain accent text |
 | Gym recent splits | `rounded-full` chips | Wrapped text list with dots |
 | Reading streak | `rounded-full` bordered pill | Plain accent text |
-| Bookshelf count | `rounded-full` bordered pill | Plain accent text |
+| Library status | `rounded-full` bordered pill | Plain accent text |
 | Deck count | `rounded-full` bordered pill | Plain text |
 | Decklist control | `glass-button rounded-full` | Plain text link with focus outline |
 | Spotify badge | `rounded-full` pill | Removed; the card title and body already identify Spotify |
@@ -97,7 +97,7 @@ The desktop grid is 12 columns. Mobile is one column; tablet is two.
 | Gym heatmap | full | full (2) | 7 |
 | Nutrition | full | 1 | 5 |
 | Reading heatmap | full | full (2) | 7 |
-| Bookshelf | full | 1 | 5 |
+| Library | full | 1 | 5 |
 | Commander vault | full | full (2) | 8 |
 | Spotify | full | 1 | 4 |
 | Portfolio | full | 1 | 3 |

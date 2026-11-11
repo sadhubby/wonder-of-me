@@ -1,6 +1,6 @@
 # Wonder of Me
 
-A single-user personal command center: an asymmetrical bento dashboard with dual GitHub-style heatmaps (gym + reading), nutrition telemetry, an active bookshelf, a Commander deck vault, external link tiles, and a static Spotify player shell.
+A single-user personal command center: an asymmetrical bento dashboard with dual GitHub-style heatmaps (gym + reading), nutrition telemetry, a full Library, a Commander deck vault, external link tiles, and a static Spotify player shell.
 
 The public UI is read-only. All writes go through an authenticated Telegram webhook into Turso.
 

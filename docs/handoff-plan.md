@@ -2,14 +2,19 @@
 
 This note captures the current decisions and next steps for continuing work on Wonder of Me.
 
-## Next feature: Library
+## Current feature: Library
 
-Replace the “Active bookshelf” card with a “Library” showing every book in the collection, including books that are finished, currently being read, or paused.
+The dashboard Library shows every book in the collection, including books that
+are finished, currently being read, or paused.
 
-- Show each book’s reading status.
-- Keep useful cover, title, author, and page/progress details.
+- Each book shows its reading status.
+- Cover, title, author, page/progress, and start-date details are preserved.
 - Relevant code: `src/db/queries.ts`, `src/components/dashboard/bookshelf-card.tsx`, and the `BookSummary` type in `src/db/queries.ts`.
-- The current dashboard query filters books to `reading`; remove that restriction for this card.
+
+## Next step: Focused automated tests
+
+Add focused Library query/component coverage and complete the remaining Step 7
+tests in `docs/app-logic-plan.md`.
 
 ## Telegram and deployment
 

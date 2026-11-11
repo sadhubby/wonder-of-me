@@ -262,7 +262,7 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 
 ## Phase 5 — UI, SEO, content
 
-- [ ] Replace the active-reading bookshelf with a full Library showing reading, finished, and paused books, including status and progress.
+- [x] Replace the active-reading bookshelf with a full Library showing reading, finished, and paused books, including status and progress.
 - [ ] Replace the static Spotify shell only after Phase 3.
 - [ ] Add `manifest.ts`, `robots.ts`, `sitemap.ts`, `opengraph-image.tsx`, `not-found.tsx`, and `loading.tsx`.
 - [ ] Add real screenshots/GIF and a current status/roadmap section to README.
