@@ -2,6 +2,16 @@
 
 Implementation plan for the dashboard. Phase 0 is external setup only. Phases 1–7 cover code, tests, content, and operations.
 
+## Progress checklist
+
+- [x] Implement the core dashboard, database-backed summaries, and basic Telegram webhook.
+- [ ] Complete production setup and verify the live Telegram-to-dashboard flow.
+- [ ] Harden Telegram writes and complete the planned bot commands.
+- [ ] Replace the active-reading shelf with a full Library.
+- [ ] Complete the remaining Spotify, database, UI, and operations work below.
+
+`[x]` means confirmed by the repository or handoff notes. `[ ]` means still to do or not yet verified.
+
 ## Status of the four external connections
 
 The Telegram and Turso integrations are already implemented in the scaffold. Spotify is not.
@@ -202,8 +212,8 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 - [ ] Migration applied; all five app tables exist
 - [ ] Seed run or intentionally skipped
 - [ ] Local app connects successfully
-- [ ] Telegram bot created; bot token and chat ID captured
-- [ ] Webhook secret generated
+- [x] Telegram bot credentials (token and chat ID) saved locally; BotFather commands set
+- [x] Webhook secret saved locally
 - [ ] Vercel project imported with all env vars
 - [ ] Production deployment live and unprotected
 - [ ] `getWebhookInfo` reports no errors
@@ -215,60 +225,61 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 
 ## Phase 1 — Repo hygiene and CI
 
-- Fix `.gitignore` (remove duplicate `.env.example` ignore).
-- Add `.nvmrc` and `engines.node >=20.12.0` (Next 16 requires 20.9; scripts require 20.12).
-- Add `.github/workflows/ci.yml`: `npm ci`, lint, typecheck, test, build.
-- Add a `check` script aggregating lint/typecheck/test.
-- Optional: Prettier + format check; Dependabot/Renovate.
-- Confirm `package-lock.json` stays committed; only `node_modules/`, build outputs, local DB, and env files are ignored.
+- [ ] Fix `.gitignore` (remove duplicate `.env.example` ignore).
+- [ ] Add `.nvmrc` and `engines.node >=20.12.0` (Next 16 requires 20.9; scripts require 20.12).
+- [ ] Add `.github/workflows/ci.yml` to run `npm ci`, lint, typecheck, tests, and build.
+- [ ] Add a `check` script aggregating lint, typecheck, and tests.
+- [ ] Confirm `package-lock.json` stays committed and generated/local files stay ignored.
+- [ ] Optional: add Prettier + format check or Dependabot/Renovate.
 
 ## Phase 2 — Telegram hardening and completion
 
-- **Fix duplicate writes:** Telegram retries updates. Add an `update_id` dedupe table (`telegram_updates`) and skip already-processed updates.
-- **Transactions:** wrap multi-step `/read` (book upsert + reading log) in a transaction.
-- **Race-safe books:** use `insert … onConflict` instead of select-then-insert; make title uniqueness case-insensitive.
-- **Missing commands:** at minimum `/undo`, `/status`, `/book`, `/finish`. Decide whether `/decks` and `/target` are in scope.
-- **Reply reliability:** handle Telegram `429 retry_after`, split messages over 4096 characters, log failures.
-- **Local development:** add `scripts/telegram-poll.ts` using `getUpdates` so you can test without a public HTTPS webhook; keep the existing webhook for production.
-- **Tests:** handler tests, route tests (secret/allowlist/error paths), mocked Telegram API.
+- [ ] **Fix duplicate writes:** add an `update_id` dedupe table (`telegram_updates`) and skip already-processed updates.
+- [ ] **Transactions:** wrap multi-step `/read` (book upsert + reading log) in a transaction.
+- [ ] **Race-safe books:** use `insert … onConflict` instead of select-then-insert; make title uniqueness case-insensitive.
+- [ ] **Missing commands:** implement at least `/undo`, `/status`, `/book`, and `/finish`; decide whether `/decks` and `/target` are in scope.
+- [ ] **Reply reliability:** handle Telegram `429 retry_after`, split messages over 4096 characters, and log failures.
+- [ ] **Local development:** add `scripts/telegram-poll.ts` using `getUpdates` for local testing; keep the webhook for production.
+- [ ] **Tests:** add handler tests, route tests (secret/allowlist/error paths), and mocked Telegram API tests.
 
 ## Phase 3 — Spotify live playback
 
-- Add `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REFRESH_TOKEN` to `.env.example` and docs.
-- Add `src/lib/spotify/`: token refresh against `accounts.spotify.com/api/token`, access-token cache, `getNowPlaying()`.
-- Add `scripts/spotify-auth.ts` to obtain the refresh token and document scopes/redirect URI.
-- Add `i.scdn.co` to `next.config.ts` `images.remotePatterns`.
-- Replace `spotify: null` in queries; cache now-playing for ~15–30 seconds to avoid rate limits.
-- Update `SpotifyCard` to accept real data: track, artist, art, progress, link; fall back to recently played/empty.
-- Verify the Next 16 Cache Components pattern (`use cache` / `cacheLife`) in `node_modules/next/dist/docs/` before implementing caching.
+- [ ] Add `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and `SPOTIFY_REFRESH_TOKEN` to `.env.example` and docs.
+- [ ] Add `src/lib/spotify/` with token refresh, access-token caching, and `getNowPlaying()`.
+- [ ] Add `scripts/spotify-auth.ts` and document the required scopes and redirect URI.
+- [ ] Add `i.scdn.co` to `next.config.ts` `images.remotePatterns`.
+- [ ] Replace `spotify: null` in queries and cache now-playing for ~15–30 seconds.
+- [ ] Update `SpotifyCard` to show real track, artist, art, progress, and link; handle recently played/empty states.
+- [ ] Verify the Next 16 Cache Components pattern (`use cache` / `cacheLife`) in `node_modules/next/dist/docs/` before implementing caching.
 
 ## Phase 4 — Database and real content
 
-- Add migration for `telegram_updates`; add NOCASE title uniqueness (or normalized title).
-- Enable `PRAGMA foreign_keys = ON` on the LibSQL connection (cascade deletes currently rely on it).
-- Improve seed idempotency (table-count checks can skip partially seeded data).
-- Replace sample books/decks/logs with real content.
-- Add backup/export instructions (`turso db dump`).
+- [ ] Add a migration for `telegram_updates` and case-insensitive book-title uniqueness (or normalized titles).
+- [ ] Enable `PRAGMA foreign_keys = ON` on the LibSQL connection.
+- [ ] Improve seed idempotency so partially seeded tables are handled safely.
+- [ ] Replace sample books, decks, and logs with real content.
+- [ ] Add backup/export instructions (`turso db dump`).
 
 ## Phase 5 — UI, SEO, content
 
-- Replace the static Spotify shell only after Phase 3.
-- Add `manifest.ts`, `robots.ts`, `sitemap.ts`, `opengraph-image.tsx`, `not-found.tsx`, `loading.tsx`.
-- Add real screenshots/GIF and a "current status/roadmap" section to README.
-- Optional extra link tiles (GitHub, LinkedIn, email) driven by env config.
-- Accessibility pass on heatmap tooltips and keyboard navigation.
+- [ ] Replace the active-reading bookshelf with a full Library showing reading, finished, and paused books, including status and progress.
+- [ ] Replace the static Spotify shell only after Phase 3.
+- [ ] Add `manifest.ts`, `robots.ts`, `sitemap.ts`, `opengraph-image.tsx`, `not-found.tsx`, and `loading.tsx`.
+- [ ] Add real screenshots/GIF and a current status/roadmap section to README.
+- [ ] Optional: add GitHub, LinkedIn, and email link tiles driven by env config.
+- [ ] Complete an accessibility pass on heatmap tooltips and keyboard navigation.
 
 ## Phase 6 — Operations
 
-- Add `/api/health` for DB connectivity.
-- Add error monitoring (Sentry) and analytics (Vercel).
-- Separate preview-deployment database from production.
-- Optional per-chat rate limiting.
+- [ ] Add `/api/health` for DB connectivity.
+- [ ] Add error monitoring (Sentry) and analytics (Vercel).
+- [ ] Separate the preview-deployment database from production.
+- [ ] Optional: add per-chat rate limiting.
 
 ## Phase 7 — Turbo (only if needed)
 
-- Single app → do nothing.
-- Monorepo → `apps/web`, `apps/bot`, `packages/db`, `packages/core`, root `turbo.json`; configure Vercel root/build command accordingly.
+- [x] Keep this as a single app and do not add Turbo unless a second deployable service is introduced.
+- [ ] If it becomes a monorepo, add `apps/web`, `apps/bot`, `packages/db`, `packages/core`, root `turbo.json`, and configure Vercel accordingly.
 
 **Recommended order:** Phase 1 → 2 → 3 → 4 → 5 → 6. Skip Phase 7 unless you add a second deployable service.
 
