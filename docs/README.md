@@ -12,6 +12,7 @@ A single-user, read-only personal command center built with Next.js, Turso, and 
 | [UI design system](./ui-design.md) | Color tokens, glass/solid-card rule, bento layout, components |
 | [Deployment](./deployment.md) | Turso, Vercel, environment variables, webhook registration |
 | [Handoff plan](./handoff-plan.md) | Agreed next feature, deployment steps, and recent work context |
+| [App logic implementation plan](./app-logic-plan.md) | Step-by-step plan for retry-safe Telegram writes, typed undo, the Library, tests, and BotFather |
 
 ## Project principles
 
