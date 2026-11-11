@@ -130,6 +130,43 @@ describe("Telegram webhook update processing", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("preserves a pending reply after rate limiting and retries safely", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: false,
+            error_code: 429,
+            description: "Too Many Requests",
+            parameters: { retry_after: 1 },
+          }),
+          { status: 429 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true, result: { message_id: 3 } }), {
+          status: 200,
+        }),
+      );
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      expect((await POST(makeRequest(1018, "/gym push 45"))).status).toBe(503);
+      expect(await db.select().from(gymWorkouts)).toHaveLength(1);
+      expect(await db.select().from(telegramUpdates)).toMatchObject([
+        { updateId: 1018, replyStatus: "pending" },
+      ]);
+
+      expect((await POST(makeRequest(1018, "/gym push 45"))).status).toBe(200);
+      expect(await db.select().from(gymWorkouts)).toHaveLength(1);
+      expect(await db.select().from(telegramUpdates)).toMatchObject([
+        { updateId: 1018, replyStatus: "sent" },
+      ]);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   it("rolls back the update record when the command write fails", async () => {
     await db.$client.execute({
       sql: `CREATE TRIGGER reject_gym_insert
