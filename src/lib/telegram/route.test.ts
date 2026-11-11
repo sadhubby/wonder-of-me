@@ -20,7 +20,13 @@ import * as schema from "@/db/schema";
 vi.mock("@/db", () => ({ getDb: vi.fn() }));
 
 import { getDb } from "@/db";
-import { books, gymWorkouts, readingLogs, telegramUpdates } from "@/db/schema";
+import {
+  books,
+  gymWorkouts,
+  meals,
+  readingLogs,
+  telegramUpdates,
+} from "@/db/schema";
 import { POST } from "@/app/api/telegram/route";
 
 const webhookSecret = "test-webhook-secret";
@@ -76,10 +82,14 @@ describe("Telegram webhook update processing", () => {
     await db.delete(books);
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), {
-          status: 200,
-        }),
+      vi.fn().mockImplementation(
+        () =>
+          Promise.resolve(
+            new Response(
+              JSON.stringify({ ok: true, result: { message_id: 1 } }),
+              { status: 200 },
+            ),
+          ),
       ),
     );
   });
@@ -196,6 +206,46 @@ describe("Telegram webhook update processing", () => {
       await db.$client.execute({ sql: "DROP TRIGGER reject_reading_insert" });
       errorSpy.mockRestore();
     }
+  });
+
+  it("undoes only the newest entry for each requested type", async () => {
+    expect((await POST(makeRequest(1008, "/gym push 30"))).status).toBe(200);
+    expect((await POST(makeRequest(1009, "/gym pull 45"))).status).toBe(200);
+    expect((await POST(makeRequest(1010, "/eat 500"))).status).toBe(200);
+    expect((await POST(makeRequest(1011, "/eat 700"))).status).toBe(200);
+
+    expect((await POST(makeRequest(1012, "/undo eat"))).status).toBe(200);
+    expect(await db.select().from(meals)).toMatchObject([
+      { calories: 500 },
+    ]);
+
+    expect((await POST(makeRequest(1013, "/undo gym"))).status).toBe(200);
+    expect(await db.select().from(gymWorkouts)).toMatchObject([
+      { split: "push" },
+    ]);
+  });
+
+  it("undoes a new reading and removes its book", async () => {
+    expect((await POST(makeRequest(1014, "/read Dune 32"))).status).toBe(200);
+    expect((await POST(makeRequest(1015, "/undo read"))).status).toBe(200);
+    expect(await db.select().from(books)).toHaveLength(0);
+    expect(await db.select().from(readingLogs)).toHaveLength(0);
+  });
+
+  it("restores an existing book after undoing its newest reading", async () => {
+    await db.insert(books).values({
+      title: "Dune",
+      status: "finished",
+      startedAt: "2026-01-01",
+    });
+
+    expect((await POST(makeRequest(1016, "/read dune 32"))).status).toBe(200);
+    expect((await POST(makeRequest(1017, "/undo read"))).status).toBe(200);
+
+    expect(await db.select().from(readingLogs)).toHaveLength(0);
+    expect(await db.select().from(books)).toMatchObject([
+      { title: "Dune", status: "finished", startedAt: "2026-01-01" },
+    ]);
   });
 
   it("rejects invalid secrets and acknowledges malformed updates without writes", async () => {

@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 import type { getDb } from "@/db";
 import { books, gymWorkouts, meals, readingLogs } from "@/db/schema";
@@ -11,11 +11,12 @@ import {
   type ParsedEatCommand,
   type ParsedGymCommand,
   type ParsedReadCommand,
+  type ParsedUndoCommand,
 } from "./parse";
 
 type CommandDatabase = Pick<
   ReturnType<typeof getDb>,
-  "insert" | "select" | "update"
+  "delete" | "insert" | "select" | "update"
 >;
 
 function formatNumber(value: number): string {
@@ -160,6 +161,82 @@ async function handleEat(
   ].join("\n");
 }
 
+async function handleUndo(
+  db: CommandDatabase,
+  command: ParsedUndoCommand,
+): Promise<string> {
+  if (command.target === "gym") {
+    const [workout] = await db
+      .select()
+      .from(gymWorkouts)
+      .orderBy(desc(gymWorkouts.createdAt), desc(gymWorkouts.id))
+      .limit(1);
+
+    if (!workout) {
+      return "Nothing to undo for gym workouts.";
+    }
+
+    await db.delete(gymWorkouts).where(eq(gymWorkouts.id, workout.id));
+    return `Undid ${workout.split} workout${workout.durationMinutes ? ` · ${workout.durationMinutes} min` : ""}.`;
+  }
+
+  if (command.target === "eat") {
+    const [meal] = await db
+      .select()
+      .from(meals)
+      .orderBy(desc(meals.createdAt), desc(meals.id))
+      .limit(1);
+
+    if (!meal) {
+      return "Nothing to undo for meals.";
+    }
+
+    await db.delete(meals).where(eq(meals.id, meal.id));
+    return `Undid ${formatNumber(meal.calories)} kcal${meal.description ? ` (${meal.description})` : ""}.`;
+  }
+
+  const [readingLog] = await db
+    .select()
+    .from(readingLogs)
+    .orderBy(desc(readingLogs.createdAt), desc(readingLogs.id))
+    .limit(1);
+
+  if (!readingLog) {
+    return "Nothing to undo for reading.";
+  }
+
+  await db.delete(readingLogs).where(eq(readingLogs.id, readingLog.id));
+
+  if (readingLog.createdBook) {
+    const [remainingLog] = await db
+      .select({ id: readingLogs.id })
+      .from(readingLogs)
+      .where(eq(readingLogs.bookId, readingLog.bookId))
+      .limit(1);
+
+    if (!remainingLog) {
+      await db.delete(books).where(eq(books.id, readingLog.bookId));
+      return `Undid ${readingLog.pages} pages and removed the new book.`;
+    }
+  } else {
+    await db
+      .update(books)
+      .set({
+        status: readingLog.previousBookStatus ?? "reading",
+        startedAt: readingLog.previousBookStartedAt,
+      })
+      .where(eq(books.id, readingLog.bookId));
+  }
+
+  const [book] = await db
+    .select({ title: books.title })
+    .from(books)
+    .where(eq(books.id, readingLog.bookId))
+    .limit(1);
+
+  return `Undid ${readingLog.pages} pages${book ? ` of ${book.title}` : ""}.`;
+}
+
 export async function processTelegramCommand(
   db: CommandDatabase,
   command: ParsedCommand,
@@ -171,6 +248,8 @@ export async function processTelegramCommand(
       return handleRead(db, command);
     case "eat":
       return handleEat(db, command);
+    case "undo":
+      return handleUndo(db, command);
     case "help":
       return helpText;
     case "error":

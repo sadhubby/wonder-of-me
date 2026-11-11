@@ -24,6 +24,11 @@ export type ParsedEatCommand = {
   description: string | null;
 };
 
+export type ParsedUndoCommand = {
+  type: "undo";
+  target: "gym" | "read" | "eat";
+};
+
 export type ParsedHelpCommand = {
   type: "help";
 };
@@ -38,6 +43,7 @@ export type ParsedCommand =
   | ParsedGymCommand
   | ParsedReadCommand
   | ParsedEatCommand
+  | ParsedUndoCommand
   | ParsedHelpCommand
   | ParsedErrorCommand;
 
@@ -217,6 +223,19 @@ function parseEat(body: string): ParsedCommand {
   };
 }
 
+function parseUndo(body: string): ParsedCommand {
+  const target = body.trim().toLowerCase();
+
+  if (target !== "gym" && target !== "read" && target !== "eat") {
+    return error(
+      "undo",
+      "Choose what to undo: `/undo gym`, `/undo read`, or `/undo eat`.",
+    );
+  }
+
+  return { type: "undo", target };
+}
+
 export function parseTelegramCommand(text: string): ParsedCommand | null {
   const trimmed = text.trim();
   if (!trimmed.startsWith("/")) {
@@ -234,13 +253,15 @@ export function parseTelegramCommand(text: string): ParsedCommand | null {
       return parseRead(body);
     case "eat":
       return parseEat(body);
+    case "undo":
+      return parseUndo(body);
     case "help":
     case "start":
       return { type: "help" };
     default:
       return error(
         command ?? "unknown",
-        "That command is not recognized. Use /gym, /read, /eat, or /help.",
+        "That command is not recognized. Use /gym, /read, /eat, /undo, or /help.",
       );
   }
 }
@@ -257,4 +278,7 @@ export const helpText = [
   "",
   "/eat <calories> [protein] [carbs] [fat] [description]",
   "  /eat 620 45 60 20 chicken bowl",
+  "",
+  "/undo <gym|read|eat>",
+  "  /undo eat",
 ].join("\n");

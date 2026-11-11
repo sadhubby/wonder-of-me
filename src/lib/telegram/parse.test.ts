@@ -58,6 +58,28 @@ describe("parseTelegramCommand", () => {
     expect(parseTelegramCommand("/start")).toEqual({ type: "help" });
   });
 
+  it("parses supported undo commands", () => {
+    expect(parseTelegramCommand("/undo gym")).toEqual({
+      type: "undo",
+      target: "gym",
+    });
+    expect(parseTelegramCommand("/undo READ")).toEqual({
+      type: "undo",
+      target: "read",
+    });
+  });
+
+  it("rejects unsupported undo targets", () => {
+    expect(parseTelegramCommand("/undo")).toMatchObject({
+      type: "error",
+      command: "undo",
+    });
+    expect(parseTelegramCommand("/undo book")).toMatchObject({
+      type: "error",
+      command: "undo",
+    });
+  });
+
   it("ignores non-command text", () => {
     expect(parseTelegramCommand("hello there")).toBeNull();
   });

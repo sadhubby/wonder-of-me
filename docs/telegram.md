@@ -52,7 +52,7 @@ The script:
 - registers `${APP_URL}/api/telegram`
 - sends `secret_token` as `TELEGRAM_WEBHOOK_SECRET`
 - restricts allowed updates to `message`
-- registers `/gym`, `/read`, `/eat`, and `/help` in the Telegram command menu
+- registers `/gym`, `/read`, `/eat`, `/undo`, and `/help` in the Telegram command menu
 
 If you change the secret, rerun the script. Telegram only accepts the secret when the webhook is registered.
 
@@ -118,6 +118,17 @@ Examples:
 ### `/help`
 
 Returns the command reference, also available as `/start`.
+
+### `/undo`
+
+```text
+/undo gym
+/undo read
+/undo eat
+```
+
+Removes the newest entry of the selected type. Reading undo also restores the
+book state or removes a book created by the undone reading command.
 
 ## Security model
 

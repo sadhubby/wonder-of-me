@@ -115,30 +115,30 @@ database migration.
 
 ## Step 4 — Implement type-specific undo commands
 
-- [ ] Extend the parsed command types and parser to accept exactly the intended
+- [x] Extend the parsed command types and parser to accept exactly the intended
   forms `/undo gym`, `/undo read`, and `/undo eat`.
-- [ ] Return a helpful validation response for missing or unsupported types;
+- [x] Return a helpful validation response for missing or unsupported types;
   do not guess which category to undo.
-- [ ] Implement `/undo gym` by selecting and removing only the newest workout.
-- [ ] Implement `/undo eat` by selecting and removing only the newest meal.
-- [ ] Implement `/undo read` by selecting and removing only the newest reading
+- [x] Implement `/undo gym` by selecting and removing only the newest workout.
+- [x] Implement `/undo eat` by selecting and removing only the newest meal.
+- [x] Implement `/undo read` by selecting and removing only the newest reading
   log, then restoring or removing associated book state as appropriate.
-- [ ] Use a deterministic ordering for "newest" (for example, creation time
+- [x] Use a deterministic ordering for "newest" (for example, creation time
   plus ID as a tie-breaker) and apply it consistently.
-- [ ] Make selection and deletion/state restoration atomic, and handle
+- [x] Make selection and deletion/state restoration atomic, and handle
   concurrent undo requests so they do not both report undoing the same row.
-- [ ] Reply with the removed entry's useful details, or a clear "nothing to
+- [x] Reply with the removed entry's useful details, or a clear "nothing to
   undo" message when no matching entry exists.
 - [ ] Update `/help` examples and command documentation.
 
 **Exit checks:**
 
-- [ ] `/undo eat` does not remove a gym workout, even if that workout is newer.
-- [ ] When multiple meals exist, `/undo eat` removes the newest meal only.
-- [ ] Subsequent `/undo eat` calls remove the then-newest remaining meal.
-- [ ] `/undo read` removes the newest reading log and correctly handles both a
+- [x] `/undo eat` does not remove a gym workout, even if that workout is newer.
+- [x] When multiple meals exist, `/undo eat` removes the newest meal only.
+- [x] Subsequent `/undo eat` calls remove the then-newest remaining meal.
+- [x] `/undo read` removes the newest reading log and correctly handles both a
   newly created book and a previously existing book.
-- [ ] No matching record produces a harmless, explicit response.
+- [x] No matching record produces a harmless, explicit response.
 
 ## Step 5 — Make Telegram reply failures observable
 

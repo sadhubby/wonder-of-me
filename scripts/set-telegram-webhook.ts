@@ -71,6 +71,10 @@ async function main() {
         description: "Log a meal: /eat 620 45 60 20 chicken bowl",
       },
       {
+        command: "undo",
+        description: "Undo the newest gym, reading, or meal entry",
+      },
+      {
         command: "help",
         description: "Show the command reference",
       },
