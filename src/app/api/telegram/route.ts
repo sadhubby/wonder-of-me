@@ -15,7 +15,10 @@ import {
   parseTelegramCommand,
   type ParsedCommand,
 } from "@/lib/telegram/parse";
-import { sendTelegramMessage } from "@/lib/telegram/send";
+import {
+  sendTelegramMessage,
+  TelegramSendError,
+} from "@/lib/telegram/send";
 import { getDb } from "@/db";
 
 export const maxDuration = 30;
@@ -123,7 +126,18 @@ export async function POST(request: Request) {
     await sendTelegramMessage(config.token, chatId, result.replyText);
     await markTelegramReplySent(db, parsed.data.update_id);
   } catch (error) {
-    console.error("[telegram] Failed to reply", error);
+    if (error instanceof TelegramSendError) {
+      console.error("[telegram] Reply delivery failed", {
+        updateId: parsed.data.update_id,
+        chatId,
+        code: error.code,
+        status: error.status,
+        telegramErrorCode: error.telegramErrorCode,
+        retryAfterSeconds: error.retryAfterSeconds,
+      });
+    } else {
+      console.error("[telegram] Reply delivery failed", error);
+    }
     return NextResponse.json(
       { ok: false, error: "Reply delivery failed." },
       { status: 503 },
