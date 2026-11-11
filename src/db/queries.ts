@@ -72,6 +72,7 @@ export type BookSummary = {
   author: string | null;
   coverUrl: string | null;
   totalPages: number | null;
+  status: "reading" | "finished" | "paused";
   loggedPages: number;
   progress: number | null;
   startedAt: string | null;
@@ -292,24 +293,23 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
       today,
       thresholds: readingHeatmapThresholds,
     });
-    const readingBooks = bookRows
-      .filter((book) => book.status === "reading")
-      .map((book) => {
-        const loggedPages = Number(book.loggedPages);
-        return {
-          id: book.id,
-          title: book.title,
-          author: book.author,
-          coverUrl: book.coverUrl,
-          totalPages: book.totalPages,
-          loggedPages,
-          progress:
-            book.totalPages && book.totalPages > 0
-              ? Math.min(100, Math.round((loggedPages / book.totalPages) * 100))
-              : null,
-          startedAt: book.startedAt,
-        };
-      });
+    const readingBooks = bookRows.map((book) => {
+      const loggedPages = Number(book.loggedPages);
+      return {
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        coverUrl: book.coverUrl,
+        totalPages: book.totalPages,
+        status: book.status,
+        loggedPages,
+        progress:
+          book.totalPages && book.totalPages > 0
+            ? Math.min(100, Math.round((loggedPages / book.totalPages) * 100))
+            : null,
+        startedAt: book.startedAt,
+      };
+    });
 
     const totalsRow = mealTotals[0] ?? {
       calories: 0,
