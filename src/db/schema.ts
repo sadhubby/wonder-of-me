@@ -113,6 +113,20 @@ export const mtgDecks = sqliteTable(
   (table) => [uniqueIndex("mtg_decks_name_unique").on(table.name)],
 );
 
+export const telegramUpdates = sqliteTable("telegram_updates", {
+  updateId: integer("update_id").primaryKey(),
+  chatId: text("chat_id").notNull(),
+  replyText: text("reply_text").notNull(),
+  replyStatus: text("reply_status")
+    .$type<"pending" | "sent">()
+    .notNull()
+    .default("pending"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  repliedAt: integer("replied_at", { mode: "timestamp" }),
+});
+
 export type GymWorkout = typeof gymWorkouts.$inferSelect;
 export type Book = typeof books.$inferSelect;
 export type ReadingLog = typeof readingLogs.$inferSelect;

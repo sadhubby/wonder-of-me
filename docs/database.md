@@ -69,6 +69,17 @@ Each `/eat` command appends a meal. Daily totals are aggregated, so multiple mea
 | `notes` | text nullable | short description |
 | `created_at` | timestamp | |
 
+### `telegram_updates`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `update_id` | integer PK | Telegram update identifier; prevents duplicate command writes |
+| `chat_id` | text | Authorized chat associated with the update |
+| `reply_text` | text | Persisted reply so delivery can be retried without repeating the write |
+| `reply_status` | text | `pending` until Telegram accepts the reply, then `sent` |
+| `created_at` | timestamp | Defaults to `unixepoch()` |
+| `replied_at` | timestamp nullable | Set after successful reply delivery |
+
 ## Heatmap aggregation
 
 `src/db/queries.ts` reads workout and reading rows, then `src/lib/heatmap.ts` builds 365 daily cells ending today.
@@ -95,6 +106,9 @@ For a new database:
 npm run db:migrate
 npm run db:seed
 ```
+
+The Telegram update deduplication table is included in the migration history.
+Apply migrations before enabling the webhook against a database.
 
 ## Local development
 

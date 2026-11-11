@@ -200,7 +200,7 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 - **One webhook per bot.** Switching between a tunnel and production means rerunning `set-webhook`.
 - **Changing the secret** requires rerunning `npm run telegram:set-webhook`.
 - **Node version:** use Node `>=20.12` (ideally 22 LTS). The scripts use `process.loadEnvFile`, which was added in Node 20.12; Next itself only requires 20.9.
-- **Chat allowlist:** a wrong `TELEGRAM_CHAT_ID` makes the webhook return `403`.
+- **Chat allowlist:** a wrong `TELEGRAM_CHAT_ID` is acknowledged without a database write, preventing Telegram retry loops.
 - **Secrets:** only `.env.example` belongs in Git; `.env.local` must stay ignored.
 - **Telegram retries:** duplicate-write protection is not in the scaffold yet; that is Phase 2.
 - **Vercel env changes** usually require a redeploy.

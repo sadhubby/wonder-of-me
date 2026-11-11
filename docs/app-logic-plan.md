@@ -38,34 +38,35 @@ state that the corresponding `/read` command changed or created.
 
 ## Step 1 — Establish the baseline
 
-- [ ] Run the current tests, typecheck, and lint; note pre-existing failures.
-- [ ] Review the current database schema and migration state before making
+- [x] Run the current tests, typecheck, and lint; note pre-existing failures.
+- [x] Review the current database schema and migration state before making
   schema changes.
-- [ ] Use an isolated local/test database for verification; do not rely on or
+- [x] Use an isolated local/test database for verification; do not rely on or
   overwrite personal data in `local.db`.
-- [ ] Keep unrelated worktree changes out of the implementation.
+- [x] Keep unrelated worktree changes out of the implementation.
 
-**Exit check:** baseline results are known, and there is a safe test database
-available for migration and write-path tests.
+**Exit check:** baseline results: tests and typecheck pass; lint has two
+pre-existing unused-import warnings in dashboard components. Migration and
+write-path tests use a temporary SQLite database.
 
 ## Step 2 — Make Telegram update processing idempotent
 
 Telegram may deliver the same webhook update more than once. A repeated
 `update_id` must not create another workout, reading log, or meal.
 
-- [ ] Add a `telegram_updates` persistence model keyed by Telegram's
+- [x] Add a `telegram_updates` persistence model keyed by Telegram's
   `update_id`.
-- [ ] Generate and apply a Drizzle migration for the new table.
-- [ ] Include `update_id` in webhook payload validation and pass it through the
+- [x] Generate a Drizzle migration and apply it to the isolated test database.
+- [x] Include `update_id` in webhook payload validation and pass it through the
   processing path.
-- [ ] Ensure claiming an update and applying its database write cannot leave a
+- [x] Ensure claiming an update and applying its database write cannot leave a
   successful write unrecorded as processed.
-- [ ] Store the processing/reply state needed to distinguish a new update, a
+- [x] Store the reply state needed to distinguish a new update, a
   completed update, and an update whose reply still needs delivery.
-- [ ] For an already-processed update, do not execute the command write again.
+- [x] For an already-processed update, do not execute the command write again.
   If a reply is pending, allow reply delivery to be retried without replaying
   the write.
-- [ ] Define how malformed, ignored, or unauthorized updates are handled so
+- [x] Define how malformed, ignored, or unauthorized updates are handled so
   they do not create retry loops or unintended database records.
 
 Likely files: `src/db/schema.ts`,
@@ -74,10 +75,14 @@ migration under `drizzle/`.
 
 **Exit checks:**
 
-- [ ] Processing the same update twice creates at most one domain record.
-- [ ] A failed database write does not leave the update marked successfully
+- [x] Processing the same update twice creates at most one domain record.
+- [x] A failed database write does not leave the update marked successfully
   processed.
-- [ ] A failed reply can be retried without repeating the domain write.
+- [x] A failed reply can be retried without repeating the domain write.
+
+The migration has **not** been applied to any developer `local.db` or remote
+Turso database. Apply it to the intended development/production database
+separately before deploying this code.
 
 ## Step 3 — Make `/read` atomic and book matching consistent
 
@@ -242,4 +247,3 @@ publicly reachable HTTPS URL.
 **Overall completion criteria:** all app-logic checks above pass locally.
 Deployment, public webhook registration, and live Telegram end-to-end testing
 remain a separate later task.
-

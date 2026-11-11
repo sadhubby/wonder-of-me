@@ -19,11 +19,14 @@ export async function sendTelegramMessage(
     },
   );
 
-  if (!response.ok) {
-    console.error(
-      "[telegram] Failed to send message",
-      response.status,
-      await response.text(),
+  const result = (await response.json().catch(() => null)) as {
+    ok?: boolean;
+    description?: string;
+  } | null;
+
+  if (!response.ok || !result?.ok) {
+    throw new Error(
+      `Telegram sendMessage failed (${response.status}): ${result?.description ?? "Unknown error"}`,
     );
   }
 }

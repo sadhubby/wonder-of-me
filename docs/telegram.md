@@ -1,6 +1,6 @@
 # Telegram gateway
 
-Telegram is the only write surface for the dashboard. The webhook validates a secret header, allowlists your chat, parses a slash command, writes through Drizzle, and replies with a confirmation.
+Telegram is the only write surface for the dashboard. The webhook validates a secret header, allowlists your chat, parses a slash command, writes through Drizzle, and replies with a confirmation. It stores each Telegram `update_id` with the command result in the same transaction as the app-data write, preventing webhook retries from duplicating writes. Replies are sent after commit and kept pending until Telegram accepts them, so reply delivery can be retried without repeating the command.
 
 ## 1. Create the bot
 
@@ -123,7 +123,7 @@ Returns the command reference, also available as `/start`.
 
 - `X-Telegram-Bot-Api-Secret-Token` must match `TELEGRAM_WEBHOOK_SECRET`.
 - Comparison is timing-safe: both values are SHA-256 hashed, then compared with `crypto.timingSafeEqual`.
-- Only `TELEGRAM_CHAT_ID` entries are accepted. Other chats receive `403` and no database write.
+- Only `TELEGRAM_CHAT_ID` entries are accepted. Other chats are acknowledged with `200` and no database write, preventing Telegram retry loops.
 - The dashboard has no write routes or Server Actions.
 - Parsed values are bounded before they reach the database.
 - Telegram replies use plain text to avoid HTML/Markdown injection issues.
@@ -136,10 +136,10 @@ You can test the webhook route without Telegram once the route has env configure
 curl -i -X POST http://localhost:3000/api/telegram \
   -H "content-type: application/json" \
   -H "x-telegram-bot-api-secret-token: $TELEGRAM_WEBHOOK_SECRET" \
-  -d '{"message":{"chat":{"id":123},"text":"/help"}}'
+  -d '{"update_id":123456789,"message":{"chat":{"id":123},"text":"/help"}}'
 ```
 
-Expected behavior without configuration: `503` with a generic “not configured” message. With a wrong secret: `401`. With a non-allowlisted chat: `403`.
+Expected behavior without configuration: `503` with a generic “not configured” message. With a wrong secret: `401`. With a non-allowlisted chat: `200` with no database write.
 
 ## Troubleshooting
 
@@ -147,7 +147,7 @@ Expected behavior without configuration: `503` with a generic “not configured�
 | --- | --- |
 | Bot does not respond | Confirm the webhook is registered and `APP_URL` is public HTTPS |
 | `401` in logs | Secret mismatch; rerun `npm run telegram:set-webhook` |
-| `403` in logs | Chat ID is not in `TELEGRAM_CHAT_ID` |
+| Unauthorized chat | Confirm the sender's chat ID is included in `TELEGRAM_CHAT_ID` |
 | `503` | Telegram env vars missing in the deployment |
 | Data not appearing | Run migrations, confirm Turso URL/token, check Vercel function logs |
 | Commands show in Telegram but fail | Check `DASHBOARD_TIMEZONE`; log dates are based on it |

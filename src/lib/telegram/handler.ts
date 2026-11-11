@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 
-import { getDb } from "@/db";
+import type { getDb } from "@/db";
 import { books, gymWorkouts, meals, readingLogs } from "@/db/schema";
 import { getDashboardConfig } from "@/lib/config";
 import { getTodayInTimeZone } from "@/lib/date";
@@ -13,12 +13,19 @@ import {
   type ParsedReadCommand,
 } from "./parse";
 
+type CommandDatabase = Pick<
+  ReturnType<typeof getDb>,
+  "insert" | "select" | "update"
+>;
+
 function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-async function handleGym(command: ParsedGymCommand): Promise<string> {
-  const db = getDb();
+async function handleGym(
+  db: CommandDatabase,
+  command: ParsedGymCommand,
+): Promise<string> {
   const today = getTodayInTimeZone(getDashboardConfig().timezone);
   const totalSets = command.exercises.reduce(
     (total, exercise) => total + (exercise.sets ?? 1),
@@ -41,8 +48,10 @@ async function handleGym(command: ParsedGymCommand): Promise<string> {
   return `Logged ${command.split}${duration}${sets}. Nice work.`;
 }
 
-async function handleRead(command: ParsedReadCommand): Promise<string> {
-  const db = getDb();
+async function handleRead(
+  db: CommandDatabase,
+  command: ParsedReadCommand,
+): Promise<string> {
   const today = getTodayInTimeZone(getDashboardConfig().timezone);
 
   let book = (
@@ -91,8 +100,10 @@ async function handleRead(command: ParsedReadCommand): Promise<string> {
   return `Read ${command.pages} pages of ${book.title}${minutes}. ${formatNumber(Number(progress?.pages ?? 0))} pages logged for this book.`;
 }
 
-async function handleEat(command: ParsedEatCommand): Promise<string> {
-  const db = getDb();
+async function handleEat(
+  db: CommandDatabase,
+  command: ParsedEatCommand,
+): Promise<string> {
   const config = getDashboardConfig();
   const today = getTodayInTimeZone(config.timezone);
 
@@ -127,15 +138,16 @@ async function handleEat(command: ParsedEatCommand): Promise<string> {
 }
 
 export async function processTelegramCommand(
+  db: CommandDatabase,
   command: ParsedCommand,
 ): Promise<string> {
   switch (command.type) {
     case "gym":
-      return handleGym(command);
+      return handleGym(db, command);
     case "read":
-      return handleRead(command);
+      return handleRead(db, command);
     case "eat":
-      return handleEat(command);
+      return handleEat(db, command);
     case "help":
       return helpText;
     case "error":
