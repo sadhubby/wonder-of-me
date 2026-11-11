@@ -15,12 +15,7 @@ export function BookshelfCard({ books }: BookshelfCardProps) {
       <CardHeading
         icon={<Library className="size-5 text-accent-violet-ink" />}
         iconClassName="shadow-[inset_0_0_20px_rgba(244,114,182,0.12)]"
-        title="Active bookshelf"
-        action={
-          <Label as="span" className="text-accent-violet-ink">
-            {books.length} reading
-          </Label>
-        }
+        title="Bookshelf"
       />
 
       {books.length > 0 ? (

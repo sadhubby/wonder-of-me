@@ -56,14 +56,21 @@ export function NutritionCard({ nutrition }: NutritionCardProps) {
           role="img"
           aria-label={`${caloriePercent}% of daily calorie target consumed`}
         >
-          <div className="flex size-full flex-col items-center justify-center rounded-full border border-white/[0.05] bg-surface">
-            <Metric as="span" size="lg">
-              {totals.calories.toLocaleString("en-US")}
-            </Metric>
-            <Label as="span">kcal eaten</Label>
-            <span className="mt-1.5 text-[0.65rem] font-medium text-accent-emerald-ink">
-              {caloriePercent}% of target
-            </span>
+          <div className="flex size-full items-center justify-center rounded-full border border-white/[0.05] bg-surface">
+            <div className="flex w-[76%] flex-col items-center justify-center text-center">
+              <Metric as="span" size="lg" className="whitespace-nowrap leading-none">
+                {totals.calories.toLocaleString("en-US")}
+              </Metric>
+              <Label
+                as="span"
+                className="mt-1.5 whitespace-nowrap text-[0.52rem] uppercase tracking-[0.12em] leading-none"
+              >
+                kcal eaten
+              </Label>
+              <span className="mt-1.5 whitespace-nowrap text-[0.56rem] font-medium leading-none text-accent-emerald-ink">
+                {caloriePercent}% of target
+              </span>
+            </div>
           </div>
         </div>
 

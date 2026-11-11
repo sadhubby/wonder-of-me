@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LoaderCircle } from "lucide-react";
 import { ActivityCalendar } from "react-activity-calendar";
 
 import { sliceHeatmapWeeks, type HeatmapDay } from "@/lib/heatmap";
@@ -140,35 +141,55 @@ export function Heatmap({ data, variant, unit }: HeatmapProps) {
     () => sliceHeatmapWeeks(data, visibleWeeks),
     [data, visibleWeeks],
   );
+  const isMeasured = containerWidth > 0;
 
   return (
-    <div ref={containerRef} className="flex w-full min-w-0 items-start">
-      <div
-        aria-hidden="true"
-        className="grid shrink-0 text-right text-text-secondary"
-        style={{
-          width: weekdayLabelWidth,
-          marginRight: weekdayLabelGap,
-          paddingTop: monthLabelHeight + Math.ceil(fontSize * 0.1),
-          gridTemplateRows: `repeat(7, ${visibleBlockSize + blockMargin}px)`,
-          fontSize,
-          lineHeight: 1,
-        }}
-      >
-        {weekdayLabels.map((label, index) => (
-          <span key={index} className="flex items-center justify-end">
-            {label}
-          </span>
-        ))}
-      </div>
-      <div className="min-w-0 flex-1">
-        <Calendar
-          data={visibleData}
-          variant={variant}
-          unit={unit}
-          blockSize={visibleBlockSize}
-        />
-      </div>
+    <div
+      ref={containerRef}
+      aria-busy={!isMeasured}
+      className={`flex w-full min-w-0 ${
+        isMeasured
+          ? "items-start"
+          : "min-h-[6.125rem] items-center justify-center"
+      }`}
+    >
+      {isMeasured ? (
+        <>
+          <div
+            aria-hidden="true"
+            className="grid shrink-0 text-right text-text-secondary"
+            style={{
+              width: weekdayLabelWidth,
+              marginRight: weekdayLabelGap,
+              paddingTop: monthLabelHeight + Math.ceil(fontSize * 0.1),
+              gridTemplateRows: `repeat(7, ${visibleBlockSize + blockMargin}px)`,
+              fontSize,
+              lineHeight: 1,
+            }}
+          >
+            {weekdayLabels.map((label, index) => (
+              <span key={index} className="flex items-center justify-end">
+                {label}
+              </span>
+            ))}
+          </div>
+          <div className="min-w-0 flex-1">
+            <Calendar
+              data={visibleData}
+              variant={variant}
+              unit={unit}
+              blockSize={visibleBlockSize}
+            />
+          </div>
+        </>
+      ) : (
+        <div role="status" aria-label="Loading heatmap">
+          <LoaderCircle
+            aria-hidden="true"
+            className="size-5 animate-spin text-text-secondary"
+          />
+        </div>
+      )}
     </div>
   );
 }

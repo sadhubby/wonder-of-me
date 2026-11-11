@@ -10,6 +10,7 @@ type LinkTileProps = {
   description: string;
   href?: string;
   icon: ReactNode;
+  eyebrow?: string;
   accentClassName: string;
   emptyHint: string;
   className?: string;
@@ -20,6 +21,7 @@ export function LinkTile({
   description,
   href,
   icon,
+  eyebrow,
   accentClassName,
   emptyHint,
   className,
@@ -62,6 +64,11 @@ export function LinkTile({
       </div>
 
       <div className="mt-auto pt-6">
+        {eyebrow ? (
+          <Label as="span" className="mb-2 block">
+            {eyebrow}
+          </Label>
+        ) : null}
         <h2 className="text-lg font-semibold tracking-tight text-text-primary">
           {title}
         </h2>

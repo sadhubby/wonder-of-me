@@ -7,14 +7,14 @@ export function AboutSection() {
   return (
     <section
       aria-labelledby="about-heading"
-      className="glass-card relative overflow-hidden rounded-card p-5 sm:p-6 lg:p-8"
+      className="glass-card relative overflow-hidden rounded-card p-3 sm:p-4 lg:p-5"
     >
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-20 -top-24 size-64 rounded-full bg-accent-violet/15 blur-3xl"
       />
       <div className="relative grid gap-6 sm:gap-8 md:grid-cols-[minmax(240px,0.85fr)_1.15fr] md:items-center lg:gap-12">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-panel border border-white/15 bg-[linear-gradient(145deg,rgba(244,114,182,0.2),rgba(245,158,11,0.16))] shadow-[0_0_50px_-24px_rgba(244,114,182,0.5)] md:aspect-[4/5]">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-[calc(var(--radius-card)-0.75rem)] border border-white/15 bg-[linear-gradient(145deg,rgba(244,114,182,0.2),rgba(245,158,11,0.16))] shadow-[0_0_50px_-24px_rgba(244,114,182,0.5)] sm:rounded-[calc(var(--radius-card)-1rem)] md:aspect-[4/5] lg:rounded-[calc(var(--radius-card)-1.25rem)]">
           {site.portraitUrl ? (
             <Image
               src={site.portraitUrl}
