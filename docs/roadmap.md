@@ -2,15 +2,244 @@
 
 Implementation plan for the dashboard. Phase 0 is external setup only. Phases 1–7 cover code, tests, content, and operations.
 
+## Branch naming convention
+
+Use one focused branch per code change, based on the Conventional Commits
+category:
+
+| Work type | Branch prefix | Example |
+| --- | --- | --- |
+| New capability | `feat/` | `feat/health-endpoint` |
+| Bug fix | `fix/` | `fix/telegram-retry` |
+| Tests | `test/` | `test/telegram-webhook` |
+| Maintenance or tooling | `chore/` | `chore/production-verification` |
+| Documentation | `docs/` | `docs/deployment-guide` |
+| Refactor | `refactor/` | `refactor/database-config` |
+
+Operational actions such as applying migrations, configuring Vercel variables,
+and registering the Telegram webhook do not need branches. Keep branch names
+lowercase, short, and hyphen-separated.
+
 ## Progress checklist
 
 - [x] Implement the core dashboard, database-backed summaries, and basic Telegram webhook.
 - [ ] Complete production setup and verify the live Telegram-to-dashboard flow.
 - [ ] Harden Telegram writes and complete the planned bot commands.
-- [ ] Replace the active-reading shelf with a full Library.
+- [x] Replace the active-reading shelf with a full Library.
 - [ ] Complete the remaining Spotify, database, UI, and operations work below.
 
+## Immediate post-deployment plan
+
+These are the next actions after the first Vercel deployment. The production
+database should remain empty until real content is entered; do not run
+`npm run db:seed`.
+
+1. **Production verification** — operational, no branch required:
+   - Confirm all Vercel environment variables, including
+     `DASHBOARD_TIMEZONE=Asia/Singapore` and
+     `APP_URL=https://wonder-of-me.vercel.app`.
+   - Run `npm run db:migrate` against the intended production Turso database.
+   - Run `npm run telegram:set-webhook` after the deployed URL is available.
+   - Test `/help`, `/gym`, `/read`, `/eat`, and `/undo`; inspect Vercel logs.
+   - Rotate any credential exposed during setup, update Vercel and local
+     environment variables, redeploy, and register the webhook again.
+   - Suggested branch for any deployment-only fixes:
+     `chore/production-verification`.
+
+2. **Continuous integration** — branch:
+   `chore/ci-workflow`.
+   Add GitHub Actions for `npm ci`, tests, typecheck, lint, and build.
+
+3. **Health endpoint** — branch: `feat/health-endpoint`.
+   Add `/api/health` to verify application availability, required
+   configuration, and Turso connectivity.
+
+4. **Lint cleanup** — branch: `fix/spotify-unused-import`.
+   Remove the existing unused `Label` import and verify a clean lint run.
+
+5. **Real content** — branch: `feat/real-content`.
+   Replace sample/static books, decks, links, and other personal content with
+   real values. Do not populate production with the seed script.
+
+6. **Production operations** — branch: `chore/production-operations`.
+   Document Turso backups, separate preview and production databases, and add
+   monitoring/error reporting as needed.
+
+7. **Spotify integration** — branch: `feat/spotify-integration`.
+   Implement OAuth/token refresh, now-playing data, artwork, progress, and
+   empty/recently-played states. This remains optional and later priority.
+
 `[x]` means confirmed by the repository or handoff notes. `[ ]` means still to do or not yet verified.
+
+## Upcoming execution plan
+
+This is the recommended order for the remaining work. Each code change should
+be developed on its named branch, reviewed, and merged independently. Operational
+steps do not require a branch, but must be recorded as completed only after they
+have been verified in the target environment.
+
+### Priority 0 — Production verification
+
+**Type:** Operations; no branch required
+**Suggested branch for deployment-only fixes:** `chore/production-verification`
+**Goal:** Confirm that the deployed Vercel app, Turso database, and Telegram
+webhook work together before adding more features.
+
+1. Confirm the Vercel project is linked to this repository and the production
+   deployment is publicly reachable without Deployment Protection.
+2. Verify production environment variables without printing or committing
+   secret values:
+   `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `TELEGRAM_BOT_TOKEN`,
+   `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_CHAT_ID`, `APP_URL`,
+   `DASHBOARD_TIMEZONE`, nutrition targets, and public link URLs.
+3. Run the existing Drizzle migrations against the intended production Turso
+   database. Do not run the seed script unless sample data is explicitly wanted.
+4. Register the webhook with `npm run telegram:set-webhook`.
+5. Confirm Telegram `getWebhookInfo` reports the expected URL, no webhook error,
+   and no growing pending update count.
+6. Test `/help`, `/gym`, `/read`, `/eat`, and `/undo` with real messages.
+7. Confirm each write appears in Turso and the dashboard reflects it after a
+   refresh. Check Vercel function logs for errors.
+8. If any credential was exposed during setup, rotate it, update Vercel and
+   local environment variables, redeploy, and register the webhook again.
+
+**Exit criteria:** all production checklist items in Phase 0 are verified, and
+the live Telegram-to-dashboard flow succeeds without duplicate writes.
+
+### Priority 1 — CI and repository quality
+
+**Branch:** `chore/ci-workflow`
+**Goal:** Prevent regressions before the next production change.
+
+- Add `.github/workflows/ci.yml` for `npm ci`, lint, typecheck, tests, and build.
+- Add a `check` script for the fast local quality gate.
+- Add `.nvmrc` and the supported Node engine (`>=20.12.0`).
+- Remove the duplicate `.env.example` ignore entry and verify generated files
+  and local databases remain ignored.
+- Keep `package-lock.json` committed and ensure CI uses the lockfile.
+- Optionally add dependency updates only after the required CI path is stable.
+
+**Validation:** run the same CI commands locally and confirm one clean GitHub
+Actions run on the pull request.
+
+### Priority 2 — Health endpoint and deployment observability
+
+**Branch:** `feat/health-endpoint`
+**Goal:** Provide a safe endpoint for uptime checks and basic dependency status.
+
+- Add `GET /api/health`.
+- Perform a lightweight database connectivity query using the existing
+  `getDb()` access point; do not expose credentials, SQL details, or personal
+  data.
+- Return a success response only when the application and database check pass.
+- Return a service-unavailable response when configuration or database access
+  fails, with a stable error shape suitable for Vercel monitoring.
+- Add focused route tests for success and database/configuration failure.
+- Document the endpoint and its expected status codes in deployment docs.
+- Decide whether the endpoint should expose only `ok` and `database` status or
+  also a version/timestamp; keep the default response minimal.
+
+**Validation:** targeted tests, typecheck, lint, production build, and a
+post-deployment `curl` check.
+
+### Priority 3 — Telegram reliability follow-up
+
+**Branches:** `fix/telegram-reliability`, `test/telegram-webhook`,
+`feat/telegram-commands`
+**Goal:** Finish the command surface and make webhook behavior resilient.
+
+1. **Reliability**
+   - Handle Telegram `429` responses according to `retry_after`.
+   - Split replies longer than Telegram's 4096-character limit.
+   - Preserve pending reply state when delivery fails so retries are safe.
+   - Add structured logging for update ID, outcome, and failure category without
+     logging tokens or message contents unnecessarily.
+2. **Commands**
+   - Implement `/status`, `/book`, and `/finish`.
+   - Decide explicitly whether `/decks` and `/target` belong in scope before
+     implementing them.
+   - Keep parser help text, webhook command registration, and BotFather's list
+     synchronized.
+3. **Local workflow**
+   - Add `scripts/telegram-poll.ts` for local `getUpdates` testing without
+     changing the production webhook.
+4. **Tests**
+   - Cover malformed payloads, unauthorized chats, missing configuration,
+     duplicate updates, failed replies, rate limiting, and all new commands.
+
+**Validation:** focused Telegram tests first, then the full test suite and a
+real production message for each supported command.
+
+### Priority 4 — Database operations and real content
+
+**Branches:** `chore/database-operations`, `feat/real-content`
+**Goal:** Make production data safer and replace scaffold content deliberately.
+
+- Confirm the `telegram_updates` migration is applied in production.
+- Enable foreign-key enforcement on the LibSQL connection if compatible with
+  the deployed database.
+- Document and test a Turso backup/export procedure.
+- Create separate preview and production databases before allowing preview
+  deployments to write real data.
+- Improve seed behavior for partially populated local databases.
+- Replace sample books, decks, links, and logs with intentional real content.
+- Review data ownership and deletion behavior before entering personal data.
+
+**Validation:** migration check, backup restore drill, local seed test, and
+preview deployment write-isolation test.
+
+### Priority 5 — UI, accessibility, and SEO
+
+**Branches:** `feat/seo-metadata`, `feat/accessibility-pass`,
+`feat/dashboard-links`
+**Goal:** Improve discoverability and usability without changing the
+read-only/public-write boundary.
+
+- Add `manifest.ts`, `robots.ts`, `sitemap.ts`, `opengraph-image.tsx`,
+  `not-found.tsx`, and `loading.tsx` where appropriate.
+- Add current screenshots and a concise project status section to the README.
+- Add optional GitHub, LinkedIn, and email tiles through environment-backed
+  configuration.
+- Test heatmap tooltips and keyboard navigation with a keyboard and screen
+  reader-oriented pass.
+- Verify loading, empty, error, and narrow-screen states for dashboard cards.
+
+**Validation:** lint, typecheck, tests, production build, and a manual
+responsive/accessibility review.
+
+### Priority 6 — Monitoring and optional integrations
+
+**Branches:** `chore/production-operations`, `feat/spotify-integration`
+**Goal:** Add operational visibility first, then optional product features.
+
+- Add error monitoring and Vercel analytics only after reviewing privacy and
+  data collection implications.
+- Add alerts around health-check failures, webhook failures, and database
+  connectivity.
+- For Spotify, first verify the Next 16 Cache Components documentation shipped
+  with the installed package.
+- Add Spotify environment variables and OAuth/token refresh handling.
+- Implement now-playing, artwork, progress, recently played, and empty states.
+- Cache Spotify responses for a short interval and handle expired/revoked
+  tokens explicitly.
+
+**Validation:** provider configuration in a non-production environment, mocked
+API tests, build verification, and a manual empty/error-state review.
+
+### Work sequencing and merge gates
+
+Use this dependency order:
+
+`chore/production-verification` (operations) → `chore/ci-workflow` →
+`feat/health-endpoint` → `fix/telegram-reliability` / `feat/telegram-commands`
+→ `chore/database-operations` / `feat/real-content` →
+`feat/seo-metadata` / `feat/accessibility-pass` →
+`chore/production-operations` → `feat/spotify-integration`.
+
+The parallel branches may be developed independently after CI is available.
+Every code branch must pass lint, typecheck, targeted tests, and a production
+build before merge. Changes that affect Telegram or database behavior also
+require an updated migration/test and an end-to-end verification note.
 
 ## Status of the four external connections
 
@@ -202,7 +431,8 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 - **Node version:** use Node `>=20.12` (ideally 22 LTS). The scripts use `process.loadEnvFile`, which was added in Node 20.12; Next itself only requires 20.9.
 - **Chat allowlist:** a wrong `TELEGRAM_CHAT_ID` is acknowledged without a database write, preventing Telegram retry loops.
 - **Secrets:** only `.env.example` belongs in Git; `.env.local` must stay ignored.
-- **Telegram retries:** duplicate-write protection is not in the scaffold yet; that is Phase 2.
+- **Telegram retries:** duplicate updates are recorded and not applied twice; failed
+  replies remain pending so Telegram can retry delivery.
 - **Vercel env changes** usually require a redeploy.
 - **Preview deployments** share the production Turso DB unless you create a separate preview database.
 
@@ -215,7 +445,8 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 - [x] Telegram bot credentials (token and chat ID) saved locally; BotFather commands set
 - [x] Webhook secret saved locally
 - [ ] Vercel project imported with all env vars
-- [ ] Production deployment live and unprotected
+- [x] Production deployment completed on Vercel
+- [ ] Production deployment confirmed live and unprotected
 - [ ] `getWebhookInfo` reports no errors
 - [ ] `/help`, `/gym`, `/read`, `/eat` all reply
 - [ ] Database rows created and dashboard updated
@@ -224,6 +455,9 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 ---
 
 ## Phase 1 — Repo hygiene and CI
+
+Suggested branch: `chore/repo-hygiene` for repository-only cleanup, or
+`chore/ci-workflow` for CI changes.
 
 - [ ] Fix `.gitignore` (remove duplicate `.env.example` ignore).
 - [ ] Add `.nvmrc` and `engines.node >=20.12.0` (Next 16 requires 20.9; scripts require 20.12).
@@ -234,15 +468,21 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 
 ## Phase 2 — Telegram hardening and completion
 
-- [ ] **Fix duplicate writes:** add an `update_id` dedupe table (`telegram_updates`) and skip already-processed updates.
-- [ ] **Transactions:** wrap multi-step `/read` (book upsert + reading log) in a transaction.
-- [ ] **Race-safe books:** use `insert … onConflict` instead of select-then-insert; make title uniqueness case-insensitive.
+Suggested branch: `feat/telegram-commands` for new commands,
+`fix/telegram-reliability` for behavior fixes, and `test/telegram-webhook`
+for focused test-only work.
+
+- [x] **Fix duplicate writes:** add an `update_id` dedupe table (`telegram_updates`) and skip already-processed updates.
+- [x] **Transactions:** wrap multi-step `/read` (book upsert + reading log) in a transaction.
+- [x] **Race-safe books:** use `insert … onConflict` instead of select-then-insert; make title uniqueness case-insensitive.
 - [ ] **Missing commands:** implement at least `/undo`, `/status`, `/book`, and `/finish`; decide whether `/decks` and `/target` are in scope.
 - [ ] **Reply reliability:** handle Telegram `429 retry_after`, split messages over 4096 characters, and log failures.
 - [ ] **Local development:** add `scripts/telegram-poll.ts` using `getUpdates` for local testing; keep the webhook for production.
-- [ ] **Tests:** add handler tests, route tests (secret/allowlist/error paths), and mocked Telegram API tests.
+- [x] **Tests:** add handler tests, route tests (secret/allowlist/error paths), and mocked Telegram API tests.
 
 ## Phase 3 — Spotify live playback
+
+Suggested branch: `feat/spotify-integration`.
 
 - [ ] Add `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and `SPOTIFY_REFRESH_TOKEN` to `.env.example` and docs.
 - [ ] Add `src/lib/spotify/` with token refresh, access-token caching, and `getNowPlaying()`.
@@ -254,6 +494,9 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 
 ## Phase 4 — Database and real content
 
+Suggested branch: `feat/real-content` for personal content and
+`chore/database-operations` for migrations, backups, and database maintenance.
+
 - [ ] Add a migration for `telegram_updates` and case-insensitive book-title uniqueness (or normalized titles).
 - [ ] Enable `PRAGMA foreign_keys = ON` on the LibSQL connection.
 - [ ] Improve seed idempotency so partially seeded tables are handled safely.
@@ -261,6 +504,9 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 - [ ] Add backup/export instructions (`turso db dump`).
 
 ## Phase 5 — UI, SEO, content
+
+Suggested branch: `feat/seo-metadata`, `feat/accessibility-pass`, or
+`feat/dashboard-links`, depending on the focused change.
 
 - [x] Replace the active-reading bookshelf with a full Library showing reading, finished, and paused books, including status and progress.
 - [ ] Replace the static Spotify shell only after Phase 3.
@@ -270,6 +516,10 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 - [ ] Complete an accessibility pass on heatmap tooltips and keyboard navigation.
 
 ## Phase 6 — Operations
+
+Suggested branch: `feat/health-endpoint` for the health route and
+`chore/production-operations` for monitoring, backups, and environment
+separation.
 
 - [ ] Add `/api/health` for DB connectivity.
 - [ ] Add error monitoring (Sentry) and analytics (Vercel).
