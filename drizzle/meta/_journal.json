@@ -6,21 +6,21 @@
       "idx": 0,
       "version": "6",
       "when": 1793809060164,
-      "tag": "0000_numerous_vanisher",
+      "tag": "0000_initial_schema",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "6",
       "when": 1794394166549,
-      "tag": "0001_acoustic_betty_brant",
+      "tag": "0001_add_telegram_updates",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "6",
       "when": 1794399930945,
-      "tag": "0002_groovy_the_hunter",
+      "tag": "0002_enhance_reading_logs",
       "breakpoints": true
     }
   ]

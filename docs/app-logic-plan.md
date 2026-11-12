@@ -188,20 +188,21 @@ Likely files: `src/db/queries.ts` and
 
 ## Step 7 — Add focused automated tests
 
-- [ ] Parser tests for `/undo gym`, `/undo read`, `/undo eat`, missing types,
+- [x] Parser tests for `/undo gym`, `/undo read`, `/undo eat`, missing types,
   and unsupported types.
-- [ ] Handler tests proving each undo only removes the newest matching type.
-- [ ] `/read` tests for transactions, case-insensitive matching, and prior book
+- [x] Handler tests proving each undo only removes the newest matching type.
+- [x] `/read` tests for transactions, case-insensitive matching, and prior book
   state restoration.
-- [ ] Webhook tests for update deduplication, authentication, allowlisting,
+- [x] Webhook tests for update deduplication, authentication, allowlisting,
   and processing failures.
-- [ ] Telegram send tests for success, API errors, and rate-limit responses.
-- [ ] Library query/component tests for mixed statuses, progress, and empty
+- [x] Telegram send tests for success, API errors, and rate-limit responses.
+- [x] Library query/component tests for mixed statuses, progress, and empty
   collections.
-- [ ] Use mocked Telegram requests and an isolated database/test fixture.
+- [x] Use mocked Telegram requests and an isolated database/test fixture.
 
 **Exit check:** the focused tests cover the behavior and failure cases above,
 without relying on live Telegram credentials or personal database contents.
+Verified with `npm test`: 5 test files and 30 tests pass.
 
 ## Step 8 — Update the Telegram command menu
 
@@ -233,14 +234,14 @@ publicly reachable HTTPS URL.
 
 ## Step 9 — Final local verification
 
-- [ ] Apply migrations to the isolated local/test database.
-- [ ] Run the full test suite, typecheck, and lint.
-- [ ] Exercise `/gym`, `/read`, `/eat`, and all three undo forms against test
+- [x] Apply migrations to the isolated local/test database.
+- [x] Run the full test suite, typecheck, and lint.
+- [x] Exercise `/gym`, `/read`, `/eat`, and all three undo forms against test
   data.
-- [ ] Replay an update and verify no duplicate write occurs.
-- [ ] Simulate a database failure and Telegram reply failure.
-- [ ] Verify the dashboard with an empty Library and a mixed-status Library.
-- [ ] Review the final diff and confirm no secrets, personal data, or unrelated
+- [x] Replay an update and verify no duplicate write occurs.
+- [x] Simulate a database failure and Telegram reply failure.
+- [x] Verify the dashboard with an empty Library and a mixed-status Library.
+- [x] Review the final diff and confirm no secrets, personal data, or unrelated
   changes are included.
 
 **Overall completion criteria:** all app-logic checks above pass locally.

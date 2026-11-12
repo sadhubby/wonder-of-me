@@ -87,7 +87,7 @@ turso db shell wonder-of-me "select name from sqlite_master where type='table';"
 
 Expected: `gym_workouts`, `books`, `reading_logs`, `meals`, `mtg_decks`, and `__drizzle_migrations`.
 
-Drizzle is not an external app. It is already installed as a library plus the `drizzle-kit` CLI and only needs the two Turso values above. The initial SQL migration already exists at `drizzle/0000_numerous_vanisher.sql`.
+Drizzle is not an external app. It is already installed as a library plus the `drizzle-kit` CLI and only needs the two Turso values above. The initial SQL migration already exists at `drizzle/0000_initial_schema.sql`.
 
 ### 0.3 Telegram bot setup
 
