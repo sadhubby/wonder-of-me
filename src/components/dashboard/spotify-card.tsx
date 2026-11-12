@@ -1,7 +1,6 @@
 import { AudioLines, Music2, Radio } from "lucide-react";
 
 import { Card, CardHeading } from "@/components/ui/card";
-import { Label } from "@/components/ui/typography";
 
 const bars = [0.55, 0.9, 0.4, 1, 0.65, 0.8, 0.45];
 
