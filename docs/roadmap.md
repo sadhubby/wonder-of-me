@@ -54,7 +54,7 @@ database should remain empty until real content is entered; do not run
    Add `/api/health` to verify application availability, required
    configuration, and Turso connectivity.
 
-4. **Lint cleanup** — branch: `fix/spotify-unused-import`.
+4. **Lint cleanup** — branch: `fix/spotify-unused-import` — complete.
    Remove the existing unused `Label` import and verify a clean lint run.
 
 5. **Real content** — branch: `feat/real-content`.
@@ -438,19 +438,31 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 
 ### 0.9 Phase 0 exit checklist
 
-- [ ] Turso database created and credentials saved
-- [ ] Migration applied; all five app tables exist
-- [ ] Seed run or intentionally skipped
-- [ ] Local app connects successfully
+- [x] Turso database created and credentials saved
+- [x] Migration applied
+- [x] All five app tables independently verified in production
+- [x] Seeded data remains present (sample data was not removed)
+- [x] Local app connects successfully
 - [x] Telegram bot credentials (token and chat ID) saved locally; BotFather commands set
 - [x] Webhook secret saved locally
-- [ ] Vercel project imported with all env vars
+- [x] Vercel project imported with required environment variables
 - [x] Production deployment completed on Vercel
-- [ ] Production deployment confirmed live and unprotected
-- [ ] `getWebhookInfo` reports no errors
-- [ ] `/help`, `/gym`, `/read`, `/eat` all reply
-- [ ] Database rows created and dashboard updated
-- [ ] `DASHBOARD_TIMEZONE` matches your real day boundary
+- [x] Production deployment confirmed live and accessible
+- [x] Production deployment independently confirmed unprotected
+- [x] `getWebhookInfo` reports no errors
+- [x] `/help`, `/gym`, `/read`, `/eat` all reply
+- [x] Database rows created and dashboard updated
+- [x] `DASHBOARD_TIMEZONE` matches your real day boundary (`Asia/Singapore`)
+
+Notes:
+
+- Phase 0 operational verification is complete: production tables, deployment
+  access, webhook status, Telegram writes, and dashboard updates were checked.
+- Local database verification confirms `__drizzle_migrations`, `gym_workouts`,
+  `books`, `reading_logs`, `meals`, and `mtg_decks` exist. This does not replace
+  verification against the production Turso database.
+- Repository verification completed: lint, tests (30/30), typecheck, and
+  production build pass.
 
 ---
 
@@ -459,12 +471,16 @@ With no `TURSO_DATABASE_URL`, it uses `file:./local.db`. Telegram returns `503` 
 Suggested branch: `chore/repo-hygiene` for repository-only cleanup, or
 `chore/ci-workflow` for CI changes.
 
-- [ ] Fix `.gitignore` (remove duplicate `.env.example` ignore).
-- [ ] Add `.nvmrc` and `engines.node >=20.12.0` (Next 16 requires 20.9; scripts require 20.12).
-- [ ] Add `.github/workflows/ci.yml` to run `npm ci`, lint, typecheck, tests, and build.
-- [ ] Add a `check` script aggregating lint, typecheck, and tests.
-- [ ] Confirm `package-lock.json` stays committed and generated/local files stay ignored.
+- [x] Fix `.gitignore` (remove duplicate `.env.example` ignore).
+- [x] Add `.nvmrc` and `engines.node >=20.12.0` (Next 16 requires 20.9; scripts require 20.12).
+- [x] Add `.github/workflows/ci.yml` to run `npm ci`, lint, typecheck, tests, and build.
+- [x] Add a `check` script aggregating lint, typecheck, and tests.
+- [x] Confirm `package-lock.json` stays committed and generated/local files stay ignored.
 - [ ] Optional: add Prettier + format check or Dependabot/Renovate.
+
+**Phase 1 validation:** `npm run check` and `npm run build` pass locally. The
+GitHub Actions workflow still needs one successful run after this branch is
+pushed or opened as a pull request.
 
 ## Phase 2 — Telegram hardening and completion
 
