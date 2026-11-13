@@ -476,7 +476,7 @@ Suggested branch: `chore/repo-hygiene` for repository-only cleanup, or
 - [x] Add `.github/workflows/ci.yml` to run `npm ci`, lint, typecheck, tests, and build.
 - [x] Add a `check` script aggregating lint, typecheck, and tests.
 - [x] Confirm `package-lock.json` stays committed and generated/local files stay ignored.
-- [ ] Optional: add Prettier + format check or Dependabot/Renovate.
+- [x] Optional: add Dependabot for npm and GitHub Actions updates.
 
 **Phase 1 validation:** `npm run check` and `npm run build` pass locally. The
 GitHub Actions workflow still needs one successful run after this branch is
