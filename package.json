@@ -26,7 +26,7 @@
     "date-fns": "^4.4.0",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.68.0",
-    "next": "16.4.5",
+    "next": "16.4.6",
     "react": "19.3.0",
     "react-activity-calendar": "^3.2.1",
     "react-dom": "19.3.0",
