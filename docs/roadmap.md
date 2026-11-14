@@ -127,16 +127,16 @@ Actions run on the pull request.
 **Branch:** `feat/health-endpoint`
 **Goal:** Provide a safe endpoint for uptime checks and basic dependency status.
 
-- Add `GET /api/health`.
-- Perform a lightweight database connectivity query using the existing
+- [x] Add `GET /api/health`.
+- [x] Perform a lightweight database connectivity query using the existing
   `getDb()` access point; do not expose credentials, SQL details, or personal
   data.
-- Return a success response only when the application and database check pass.
-- Return a service-unavailable response when configuration or database access
+- [x] Return a success response only when the application and database check pass.
+- [x] Return a service-unavailable response when configuration or database access
   fails, with a stable error shape suitable for Vercel monitoring.
-- Add focused route tests for success and database/configuration failure.
-- Document the endpoint and its expected status codes in deployment docs.
-- Decide whether the endpoint should expose only `ok` and `database` status or
+- [x] Add focused route tests for success and database/configuration failure.
+- [x] Document the endpoint and its expected status codes in deployment docs.
+- [x] Decide whether the endpoint should expose only `ok` and `database` status or
   also a version/timestamp; keep the default response minimal.
 
 **Validation:** targeted tests, typecheck, lint, production build, and a
@@ -537,7 +537,7 @@ Suggested branch: `feat/health-endpoint` for the health route and
 `chore/production-operations` for monitoring, backups, and environment
 separation.
 
-- [ ] Add `/api/health` for DB connectivity.
+- [x] Add `/api/health` for DB connectivity.
 - [ ] Add error monitoring (Sentry) and analytics (Vercel).
 - [ ] Separate the preview-deployment database from production.
 - [ ] Optional: add per-chat rate limiting.

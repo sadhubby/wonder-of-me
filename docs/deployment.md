@@ -89,6 +89,20 @@ and sets the secret token plus the bot command menu.
 4. Refresh the dashboard. The gym heatmap and recent splits should update.
 5. Check Vercel function logs if the bot does not reply.
 
+### Health endpoint
+
+Use `GET /api/health` for uptime checks:
+
+```bash
+curl -i https://wonder-of-me.vercel.app/api/health
+```
+
+The endpoint returns `200` with `{"ok":true,"database":"ok"}` when the
+application can connect to its database. It returns `503` with
+`{"ok":false,"database":"unavailable"}` when configuration or database
+connectivity is unavailable. It does not expose credentials, SQL details, or
+personal data.
+
 ## Local development
 
 ```bash
