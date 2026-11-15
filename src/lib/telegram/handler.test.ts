@@ -50,15 +50,15 @@ describe("Telegram command handlers", () => {
       '/book "Dune" | author=Frank Herbert pages=412',
     );
     expect(add).not.toBeNull();
-    expect(await processTelegramCommand(db, add!)).toContain("Added Dune");
+    expect(await processTelegramCommand(db, add!)).toContain("Book added");
 
     const update = parseTelegramCommand("/book dune | status=paused");
     expect(update).not.toBeNull();
-    expect(await processTelegramCommand(db, update!)).toContain("Updated Dune");
+    expect(await processTelegramCommand(db, update!)).toContain("Book updated");
 
     const finish = parseTelegramCommand("/finish DUNE");
     expect(finish).not.toBeNull();
-    expect(await processTelegramCommand(db, finish!)).toBe("Finished Dune.");
+    expect(await processTelegramCommand(db, finish!)).toContain("Book finished");
 
     const [book] = await db.select().from(schema.books);
     expect(book).toMatchObject({
@@ -109,7 +109,7 @@ describe("Telegram command handlers", () => {
 
     expect(response).toContain("620 / 2,200 kcal");
     expect(response).toContain("push · 45 min");
-    expect(response).toContain("Reading: 32 pages (Dune)");
+    expect(response).toContain("32 pages · Dune");
     expect(response).toContain("Now reading: Dune");
   });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   sendTelegramMessage,
+  splitTelegramMessage,
   TelegramSendError,
 } from "./send";
 
@@ -26,17 +27,29 @@ describe("sendTelegramMessage", () => {
   it("exposes rate-limit details", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            ok: false,
-            error_code: 429,
-            description: "Too Many Requests",
-            parameters: { retry_after: 7 },
-          }),
-          { status: 429 },
+      vi.fn()
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              ok: false,
+              error_code: 429,
+              description: "Too Many Requests",
+              parameters: { retry_after: 0 },
+            }),
+            { status: 429 },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              ok: false,
+              error_code: 429,
+              description: "Too Many Requests",
+              parameters: { retry_after: 0 },
+            }),
+            { status: 429 },
+          ),
         ),
-      ),
     );
 
     const error = await sendTelegramMessage("test-token", "123", "hello").catch(
@@ -48,10 +61,45 @@ describe("sendTelegramMessage", () => {
       code: "rate_limited",
       status: 429,
       telegramErrorCode: 429,
-      retryAfterSeconds: 7,
+      retryAfterSeconds: 0,
     });
-
     vi.unstubAllGlobals();
+  });
+
+  it("retries a rate-limited message after the requested delay", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn()
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              ok: false,
+              error_code: 429,
+              parameters: { retry_after: 0 },
+            }),
+            { status: 429 },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ ok: true }), { status: 200 }),
+        ),
+    );
+
+    await expect(
+      sendTelegramMessage("test-token", "123", "hello"),
+    ).resolves.toBeUndefined();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    vi.unstubAllGlobals();
+  });
+
+  it("splits long messages at line boundaries within Telegram's limit", () => {
+    const chunks = splitTelegramMessage(
+      `${"a".repeat(4090)}\nsecond line\n${"b".repeat(4090)}`,
+    );
+
+    expect(chunks).toHaveLength(3);
+    expect(chunks.every((chunk) => chunk.length <= 4096)).toBe(true);
+    expect(chunks[1]).toBe("second line");
   });
 
   it("distinguishes malformed responses and network failures", async () => {
