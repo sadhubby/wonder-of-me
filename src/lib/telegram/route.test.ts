@@ -131,7 +131,7 @@ describe("Telegram webhook update processing", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it("preserves a pending reply after rate limiting and retries safely", async () => {
+  it("retries a rate-limited reply without repeating the write", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(
         new Response(
@@ -139,7 +139,7 @@ describe("Telegram webhook update processing", () => {
             ok: false,
             error_code: 429,
             description: "Too Many Requests",
-            parameters: { retry_after: 1 },
+            parameters: { retry_after: 0 },
           }),
           { status: 429 },
         ),
@@ -152,10 +152,10 @@ describe("Telegram webhook update processing", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     try {
-      expect((await POST(makeRequest(1018, "/gym push 45"))).status).toBe(503);
+      expect((await POST(makeRequest(1018, "/gym push 45"))).status).toBe(200);
       expect(await db.select().from(gymWorkouts)).toHaveLength(1);
       expect(await db.select().from(telegramUpdates)).toMatchObject([
-        { updateId: 1018, replyStatus: "pending" },
+        { updateId: 1018, replyStatus: "sent" },
       ]);
 
       expect((await POST(makeRequest(1018, "/gym push 45"))).status).toBe(200);

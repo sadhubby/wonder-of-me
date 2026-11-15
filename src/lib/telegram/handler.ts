@@ -43,12 +43,17 @@ async function handleGym(
     notes: command.notes,
   });
 
-  const duration = command.durationMinutes
-    ? ` · ${command.durationMinutes} min`
-    : "";
-  const sets = totalSets > 0 ? ` · ${totalSets} sets` : "";
-
-  return `Logged ${command.split}${duration}${sets}. Nice work.`;
+  return [
+    "Workout logged",
+    "",
+    `Split: ${command.split}`,
+    command.durationMinutes ? `Duration: ${command.durationMinutes} min` : null,
+    totalSets > 0 ? `Sets: ${totalSets}` : null,
+    "",
+    "Nice work.",
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
 async function handleRead(
@@ -121,9 +126,16 @@ async function handleRead(
     .from(readingLogs)
     .where(eq(readingLogs.bookId, book.id));
 
-  const minutes = command.minutes ? ` in ${command.minutes} min` : "";
-
-  return `Read ${command.pages} pages of ${book.title}${minutes}. ${formatNumber(Number(progress?.pages ?? 0))} pages logged for this book.`;
+  return [
+    "Reading logged",
+    "",
+    `Book: ${book.title}`,
+    `Pages: ${formatNumber(command.pages)}`,
+    command.minutes ? `Time: ${command.minutes} min` : null,
+    `Total for book: ${formatNumber(Number(progress?.pages ?? 0))} pages`,
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
 async function handleEat(
@@ -156,10 +168,16 @@ async function handleEat(
   const remaining = Math.max(0, config.targets.calories - calories);
 
   return [
-    `Logged ${formatNumber(command.calories)} kcal.`,
-    `Today: ${formatNumber(calories)} / ${formatNumber(config.targets.calories)} kcal`,
-    `P ${formatNumber(Number(totals?.protein ?? 0))}g · C ${formatNumber(Number(totals?.carbs ?? 0))}g · F ${formatNumber(Number(totals?.fat ?? 0))}g`,
-    `${formatNumber(remaining)} kcal remaining`,
+    "Meal logged",
+    "",
+    `Added: ${formatNumber(command.calories)} kcal`,
+    "",
+    "Today's total",
+    `${formatNumber(calories)} / ${formatNumber(config.targets.calories)} kcal`,
+    `Protein: ${formatNumber(Number(totals?.protein ?? 0))}g`,
+    `Carbs: ${formatNumber(Number(totals?.carbs ?? 0))}g`,
+    `Fat: ${formatNumber(Number(totals?.fat ?? 0))}g`,
+    `Remaining: ${formatNumber(remaining)} kcal`,
   ].join("\n");
 }
 
@@ -183,7 +201,12 @@ async function handleBook(
         ? getTodayInTimeZone(getDashboardConfig().timezone)
         : null,
     });
-    return `Added ${command.title} to your library as ${command.status}.`;
+    return [
+      "Book added",
+      "",
+      `Title: ${command.title}`,
+      `Status: ${command.status}`,
+    ].join("\n");
   }
 
   await db
@@ -200,7 +223,12 @@ async function handleBook(
     })
     .where(eq(books.id, existing.id));
 
-  return `Updated ${existing.title} as ${command.status}.`;
+  return [
+    "Book updated",
+    "",
+    `Title: ${existing.title}`,
+    `Status: ${command.status}`,
+  ].join("\n");
 }
 
 async function handleFinish(
@@ -218,7 +246,7 @@ async function handleFinish(
   }
 
   if (book.status === "finished") {
-    return `${book.title} is already marked finished.`;
+    return [`Already finished`, "", book.title].join("\n");
   }
 
   await db
@@ -229,7 +257,7 @@ async function handleFinish(
     })
     .where(eq(books.id, book.id));
 
-  return `Finished ${book.title}.`;
+  return ["Book finished", "", book.title].join("\n");
 }
 
 async function handleStatus(
@@ -268,15 +296,23 @@ async function handleStatus(
   const pages = readingRows.reduce((total, row) => total + row.pages, 0);
 
   return [
-    "Today",
+    "Today's status",
     "",
-    `Nutrition: ${formatNumber(calories)} / ${formatNumber(config.targets.calories)} kcal`,
-    `P ${formatNumber(Number(totals?.protein ?? 0))}g · C ${formatNumber(Number(totals?.carbs ?? 0))}g · F ${formatNumber(Number(totals?.fat ?? 0))}g`,
+    "Nutrition",
+    `${formatNumber(calories)} / ${formatNumber(config.targets.calories)} kcal`,
+    `Protein: ${formatNumber(Number(totals?.protein ?? 0))}g`,
+    `Carbs: ${formatNumber(Number(totals?.carbs ?? 0))}g`,
+    `Fat: ${formatNumber(Number(totals?.fat ?? 0))}g`,
     `Remaining: ${formatNumber(Math.max(0, config.targets.calories - calories))} kcal`,
     "",
-    `Training: ${workout ? `${workout.split}${workout.durationMinutes ? ` · ${workout.durationMinutes} min` : ""}` : "none"}`,
-    `Reading: ${pages} pages${readingRows[0] ? ` (${readingRows[0].title})` : ""}`,
-    `Now reading: ${currentBooks.length ? currentBooks.map((book) => book.title).join(", ") : "none"}`,
+    "Training",
+    workout
+      ? `${workout.split}${workout.durationMinutes ? ` · ${workout.durationMinutes} min` : ""}`
+      : "None logged",
+    "",
+    "Reading",
+    `${formatNumber(pages)} pages${readingRows[0] ? ` · ${readingRows[0].title}` : ""}`,
+    `Now reading: ${currentBooks.length ? currentBooks.map((book) => book.title).join(", ") : "None"}`,
   ].join("\n");
 }
 
@@ -296,7 +332,16 @@ async function handleUndo(
     }
 
     await db.delete(gymWorkouts).where(eq(gymWorkouts.id, workout.id));
-    return `Undid ${workout.split} workout${workout.durationMinutes ? ` · ${workout.durationMinutes} min` : ""}.`;
+    return [
+      "Workout undone",
+      "",
+      `Split: ${workout.split}`,
+      workout.durationMinutes
+        ? `Duration: ${workout.durationMinutes} min`
+        : null,
+    ]
+      .filter((line): line is string => line !== null)
+      .join("\n");
   }
 
   if (command.target === "eat") {
@@ -311,7 +356,14 @@ async function handleUndo(
     }
 
     await db.delete(meals).where(eq(meals.id, meal.id));
-    return `Undid ${formatNumber(meal.calories)} kcal${meal.description ? ` (${meal.description})` : ""}.`;
+    return [
+      "Meal undone",
+      "",
+      `Calories: ${formatNumber(meal.calories)} kcal`,
+      meal.description ? `Description: ${meal.description}` : null,
+    ]
+      .filter((line): line is string => line !== null)
+      .join("\n");
   }
 
   const [readingLog] = await db
@@ -335,7 +387,12 @@ async function handleUndo(
 
     if (!remainingLog) {
       await db.delete(books).where(eq(books.id, readingLog.bookId));
-      return `Undid ${readingLog.pages} pages and removed the new book.`;
+      return [
+        "Reading undone",
+        "",
+        `Pages: ${formatNumber(readingLog.pages)}`,
+        "The newly added book was removed.",
+      ].join("\n");
     }
   } else {
     await db
@@ -353,7 +410,14 @@ async function handleUndo(
     .where(eq(books.id, readingLog.bookId))
     .limit(1);
 
-  return `Undid ${readingLog.pages} pages${book ? ` of ${book.title}` : ""}.`;
+  return [
+    "Reading undone",
+    "",
+    `Pages: ${formatNumber(readingLog.pages)}`,
+    book ? `Book: ${book.title}` : null,
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
 export async function processTelegramCommand(
