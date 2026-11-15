@@ -111,7 +111,12 @@ export async function POST(request: Request) {
       command,
     );
   } catch (error) {
-    console.error("[telegram] Update processing failed", error);
+    console.error("[telegram] Update failed", {
+      updateId: parsed.data.update_id,
+      chatId,
+      outcome: "processing_failed",
+      failureCategory: error instanceof Error ? error.name : "unknown",
+    });
     return NextResponse.json(
       { ok: false, error: "Update processing failed." },
       { status: 500 },
@@ -127,16 +132,23 @@ export async function POST(request: Request) {
     await markTelegramReplySent(db, parsed.data.update_id);
   } catch (error) {
     if (error instanceof TelegramSendError) {
-      console.error("[telegram] Reply delivery failed", {
+      console.error("[telegram] Reply failed", {
         updateId: parsed.data.update_id,
         chatId,
+        outcome: "reply_pending",
+        failureCategory: error.code,
         code: error.code,
         status: error.status,
         telegramErrorCode: error.telegramErrorCode,
         retryAfterSeconds: error.retryAfterSeconds,
       });
     } else {
-      console.error("[telegram] Reply delivery failed", error);
+      console.error("[telegram] Reply failed", {
+        updateId: parsed.data.update_id,
+        chatId,
+        outcome: "reply_pending",
+        failureCategory: "unknown",
+      });
     }
     return NextResponse.json(
       { ok: false, error: "Reply delivery failed." },
