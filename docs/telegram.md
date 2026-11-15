@@ -52,7 +52,7 @@ The script:
 - registers `${APP_URL}/api/telegram`
 - sends `secret_token` as `TELEGRAM_WEBHOOK_SECRET`
 - restricts allowed updates to `message`
-- registers `/gym`, `/read`, `/eat`, `/undo`, and `/help` in the Telegram command menu
+- registers `/gym`, `/read`, `/eat`, `/undo`, `/status`, `/book`, `/finish`, and `/help` in the Telegram command menu
 
 If you change the secret, rerun the script. Telegram only accepts the secret when the webhook is registered.
 
@@ -118,6 +118,40 @@ Examples:
 ### `/help`
 
 Returns the command reference, also available as `/start`.
+
+### `/status`
+
+```text
+/status
+```
+
+Returns today's nutrition totals, latest workout, reading pages, and currently
+reading books.
+
+### `/book`
+
+```text
+/book <title> [| author=... pages=... status=...]
+```
+
+Examples:
+
+```text
+/book "Dune" | author=Frank Herbert pages=412
+/book Piranesi | status=paused
+```
+
+The supported statuses are `reading`, `finished`, and `paused`. Existing books
+are matched case-insensitively and updated.
+
+### `/finish`
+
+```text
+/finish <title>
+```
+
+Marks an existing book as finished using the configured dashboard timezone.
+It does not create a book when the title is unknown.
 
 ### `/undo`
 

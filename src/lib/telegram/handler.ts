@@ -8,7 +8,9 @@ import { getTodayInTimeZone } from "@/lib/date";
 import {
   helpText,
   type ParsedCommand,
+  type ParsedBookCommand,
   type ParsedEatCommand,
+  type ParsedFinishCommand,
   type ParsedGymCommand,
   type ParsedReadCommand,
   type ParsedUndoCommand,
@@ -161,6 +163,123 @@ async function handleEat(
   ].join("\n");
 }
 
+async function handleBook(
+  db: CommandDatabase,
+  command: ParsedBookCommand,
+): Promise<string> {
+  const [existing] = await db
+    .select()
+    .from(books)
+    .where(sql`lower(${books.title}) = lower(${command.title})`)
+    .limit(1);
+
+  if (!existing) {
+    await db.insert(books).values({
+      title: command.title,
+      author: command.author,
+      totalPages: command.totalPages,
+      status: command.status,
+      finishedAt: command.status === "finished"
+        ? getTodayInTimeZone(getDashboardConfig().timezone)
+        : null,
+    });
+    return `Added ${command.title} to your library as ${command.status}.`;
+  }
+
+  await db
+    .update(books)
+    .set({
+      author: command.author ?? existing.author,
+      totalPages: command.totalPages ?? existing.totalPages,
+      status: command.status,
+      finishedAt:
+        command.status === "finished"
+          ? existing.finishedAt ??
+            getTodayInTimeZone(getDashboardConfig().timezone)
+          : null,
+    })
+    .where(eq(books.id, existing.id));
+
+  return `Updated ${existing.title} as ${command.status}.`;
+}
+
+async function handleFinish(
+  db: CommandDatabase,
+  command: ParsedFinishCommand,
+): Promise<string> {
+  const [book] = await db
+    .select()
+    .from(books)
+    .where(sql`lower(${books.title}) = lower(${command.title})`)
+    .limit(1);
+
+  if (!book) {
+    return `I couldn't find "${command.title}" in your library. Use /book to add it first.`;
+  }
+
+  if (book.status === "finished") {
+    return `${book.title} is already marked finished.`;
+  }
+
+  await db
+    .update(books)
+    .set({
+      status: "finished",
+      finishedAt: getTodayInTimeZone(getDashboardConfig().timezone),
+    })
+    .where(eq(books.id, book.id));
+
+  return `Finished ${book.title}.`;
+}
+
+async function handleStatus(
+  db: CommandDatabase,
+): Promise<string> {
+  const today = getTodayInTimeZone(getDashboardConfig().timezone);
+  const [totals] = await db
+    .select({
+      calories: sql<number>`coalesce(sum(${meals.calories}), 0)`,
+      protein: sql<number>`coalesce(sum(${meals.proteinG}), 0)`,
+      carbs: sql<number>`coalesce(sum(${meals.carbsG}), 0)`,
+      fat: sql<number>`coalesce(sum(${meals.fatG}), 0)`,
+    })
+    .from(meals)
+    .where(eq(meals.logDate, today));
+  const [workout] = await db
+    .select()
+    .from(gymWorkouts)
+    .where(eq(gymWorkouts.workoutDate, today))
+    .orderBy(desc(gymWorkouts.createdAt), desc(gymWorkouts.id))
+    .limit(1);
+  const readingRows = await db
+    .select({
+      title: books.title,
+      pages: readingLogs.pages,
+    })
+    .from(readingLogs)
+    .innerJoin(books, eq(readingLogs.bookId, books.id))
+    .where(eq(readingLogs.logDate, today));
+  const currentBooks = await db
+    .select({ title: books.title })
+    .from(books)
+    .where(eq(books.status, "reading"));
+  const config = getDashboardConfig();
+  const calories = Number(totals?.calories ?? 0);
+  const pages = readingRows.reduce((total, row) => total + row.pages, 0);
+
+  return [
+    "Today",
+    "",
+    `Nutrition: ${formatNumber(calories)} / ${formatNumber(config.targets.calories)} kcal`,
+    `P ${formatNumber(Number(totals?.protein ?? 0))}g · C ${formatNumber(Number(totals?.carbs ?? 0))}g · F ${formatNumber(Number(totals?.fat ?? 0))}g`,
+    `Remaining: ${formatNumber(Math.max(0, config.targets.calories - calories))} kcal`,
+    "",
+    `Training: ${workout ? `${workout.split}${workout.durationMinutes ? ` · ${workout.durationMinutes} min` : ""}` : "none"}`,
+    `Reading: ${pages} pages${readingRows[0] ? ` (${readingRows[0].title})` : ""}`,
+    `Now reading: ${currentBooks.length ? currentBooks.map((book) => book.title).join(", ") : "none"}`,
+  ].join("\n");
+}
+
 async function handleUndo(
   db: CommandDatabase,
   command: ParsedUndoCommand,
@@ -248,6 +367,12 @@ export async function processTelegramCommand(
       return handleRead(db, command);
     case "eat":
       return handleEat(db, command);
+    case "book":
+      return handleBook(db, command);
+    case "finish":
+      return handleFinish(db, command);
+    case "status":
+      return handleStatus(db);
     case "undo":
       return handleUndo(db, command);
     case "help":
