@@ -75,6 +75,18 @@ async function main() {
         description: "Undo the newest gym, reading, or meal entry",
       },
       {
+        command: "status",
+        description: "Show today's training, reading, and nutrition",
+      },
+      {
+        command: "book",
+        description: "Add or update a library book",
+      },
+      {
+        command: "finish",
+        description: "Mark a book as finished",
+      },
+      {
         command: "help",
         description: "Show the command reference",
       },
