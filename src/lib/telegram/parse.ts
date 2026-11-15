@@ -1,4 +1,4 @@
-import type { WorkoutExercise } from "@/db/schema";
+import type { BookStatus, WorkoutExercise } from "@/db/schema";
 
 export type ParsedGymCommand = {
   type: "gym";
@@ -33,6 +33,23 @@ export type ParsedHelpCommand = {
   type: "help";
 };
 
+export type ParsedStatusCommand = {
+  type: "status";
+};
+
+export type ParsedBookCommand = {
+  type: "book";
+  title: string;
+  author: string | null;
+  totalPages: number | null;
+  status: BookStatus;
+};
+
+export type ParsedFinishCommand = {
+  type: "finish";
+  title: string;
+};
+
 export type ParsedErrorCommand = {
   type: "error";
   command: string;
@@ -45,6 +62,9 @@ export type ParsedCommand =
   | ParsedEatCommand
   | ParsedUndoCommand
   | ParsedHelpCommand
+  | ParsedStatusCommand
+  | ParsedBookCommand
+  | ParsedFinishCommand
   | ParsedErrorCommand;
 
 const maxTextLength = 1000;
@@ -236,6 +256,79 @@ function parseUndo(body: string): ParsedCommand {
   return { type: "undo", target };
 }
 
+function parseTitle(value: string): string {
+  const trimmed = value.trim();
+  const quoted = trimmed.match(/^["“](.+?)["”]$/);
+  return (quoted?.[1] ?? trimmed).trim();
+}
+
+function parseBook(body: string): ParsedCommand {
+  const [titlePart = "", optionsPart] = body.split("|", 2);
+  const title = parseTitle(titlePart);
+
+  if (!title) {
+    return error(
+      "book",
+      'Add a title, for example `/book "Dune" | author=Frank Herbert pages=412`.',
+    );
+  }
+
+  let author: string | null = null;
+  let totalPages: number | null = null;
+  let status: BookStatus = "reading";
+
+  const options = optionsPart
+    ? optionsPart
+        .trim()
+        .split(/\s+(?=(?:author|pages|status)=)/i)
+        .filter(Boolean)
+    : [];
+
+  for (const option of options) {
+    const separator = option.indexOf("=");
+    const key = separator >= 0 ? option.slice(0, separator).trim() : option;
+    const value = separator >= 0 ? option.slice(separator + 1).trim() : "";
+
+    if (!value) {
+      return error("book", `Book option "${key}" needs a value.`);
+    }
+
+    if (key === "author") {
+      author = value.slice(0, 200);
+    } else if (key === "pages") {
+      totalPages = parsePositiveInteger(value, 1, 100000);
+      if (totalPages === null) {
+        return error("book", "Book pages must be between 1 and 100000.");
+      }
+    } else if (key === "status") {
+      if (value !== "reading" && value !== "finished" && value !== "paused") {
+        return error("book", "Book status must be reading, finished, or paused.");
+      }
+      status = value;
+    } else {
+      return error("book", `Unknown book option "${key}".`);
+    }
+  }
+
+  return {
+    type: "book",
+    title: title.slice(0, 200),
+    author,
+    totalPages,
+    status,
+  };
+}
+
+function parseFinish(body: string): ParsedCommand {
+  const title = parseTitle(body);
+
+  if (!title) {
+    return error("finish", 'Add a title, for example `/finish "Dune"`.');
+  }
+
+  return { type: "finish", title: title.slice(0, 200) };
+}
+
 export function parseTelegramCommand(text: string): ParsedCommand | null {
   const trimmed = text.trim();
   if (!trimmed.startsWith("/")) {
@@ -255,13 +348,19 @@ export function parseTelegramCommand(text: string): ParsedCommand | null {
       return parseEat(body);
     case "undo":
       return parseUndo(body);
+    case "status":
+      return { type: "status" };
+    case "book":
+      return parseBook(body);
+    case "finish":
+      return parseFinish(body);
     case "help":
     case "start":
       return { type: "help" };
     default:
       return error(
         command ?? "unknown",
-        "That command is not recognized. Use /gym, /read, /eat, /undo, or /help.",
+        "That command is not recognized. Use /gym, /read, /eat, /undo, /status, /book, /finish, or /help.",
       );
   }
 }
@@ -281,4 +380,13 @@ export const helpText = [
   "",
   "/undo <gym|read|eat>",
   "  /undo eat",
+  "",
+  "/status",
+  "  Show today's training, reading, and nutrition summary.",
+  "",
+  "/book <title> [| author=... pages=... status=...]",
+  '  /book "Dune" | author=Frank Herbert pages=412',
+  "",
+  "/finish <title>",
+  '  /finish "Dune"',
 ].join("\n");
