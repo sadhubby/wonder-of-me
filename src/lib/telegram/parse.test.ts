@@ -58,6 +58,40 @@ describe("parseTelegramCommand", () => {
     expect(parseTelegramCommand("/start")).toEqual({ type: "help" });
   });
 
+  it("parses status, book, and finish commands", () => {
+    expect(parseTelegramCommand("/status")).toEqual({ type: "status" });
+    expect(
+      parseTelegramCommand(
+        '/book "Dune" | author=Frank Herbert pages=412 status=reading',
+      ),
+    ).toEqual({
+      type: "book",
+      title: "Dune",
+      author: "Frank Herbert",
+      totalPages: 412,
+      status: "reading",
+    });
+    expect(parseTelegramCommand('/finish "Dune"')).toEqual({
+      type: "finish",
+      title: "Dune",
+    });
+  });
+
+  it("rejects invalid book options and missing finish titles", () => {
+    expect(parseTelegramCommand("/book Dune | pages=0")).toMatchObject({
+      type: "error",
+      command: "book",
+    });
+    expect(parseTelegramCommand("/book Dune | status=unknown")).toMatchObject({
+      type: "error",
+      command: "book",
+    });
+    expect(parseTelegramCommand("/finish")).toMatchObject({
+      type: "error",
+      command: "finish",
+    });
+  });
+
   it("parses supported undo commands", () => {
     expect(parseTelegramCommand("/undo gym")).toEqual({
       type: "undo",
