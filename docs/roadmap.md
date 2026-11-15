@@ -491,7 +491,7 @@ for focused test-only work.
 - [x] **Fix duplicate writes:** add an `update_id` dedupe table (`telegram_updates`) and skip already-processed updates.
 - [x] **Transactions:** wrap multi-step `/read` (book upsert + reading log) in a transaction.
 - [x] **Race-safe books:** use `insert … onConflict` instead of select-then-insert; make title uniqueness case-insensitive.
-- [ ] **Missing commands:** implement at least `/undo`, `/status`, `/book`, and `/finish`; decide whether `/decks` and `/target` are in scope.
+- [x] **Missing commands:** implement `/status`, `/book`, and `/finish`; `/decks` and `/target` remain out of scope for now.
 - [ ] **Reply reliability:** handle Telegram `429 retry_after`, split messages over 4096 characters, and log failures.
 - [ ] **Local development:** add `scripts/telegram-poll.ts` using `getUpdates` for local testing; keep the webhook for production.
 - [x] **Tests:** add handler tests, route tests (secret/allowlist/error paths), and mocked Telegram API tests.
