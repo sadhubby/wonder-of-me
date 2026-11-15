@@ -119,6 +119,10 @@ Examples:
 
 Returns the command reference, also available as `/start`.
 
+Replies use short labeled sections and one value per line so they remain
+readable on narrow screens. Long replies are split at line boundaries before
+Telegram's 4096-character limit.
+
 ### `/status`
 
 ```text
@@ -201,5 +205,7 @@ Telegram retries failed deliveries. The route returns `200` for ignored or malfo
 
 Reply delivery failures return `503` and leave the update as `pending`. A
 retry sends the stored reply without executing the command again. Telegram
-rate-limit responses include the recommended `retry_after` delay in server
-logs.
+rate-limit responses are retried once using the API's recommended
+`retry_after` delay; if delivery still fails, the pending reply remains safe
+for a later webhook retry. Messages longer than Telegram's 4096-character
+limit are sent as multiple chunks, preferring newline boundaries.
